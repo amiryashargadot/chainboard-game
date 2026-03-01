@@ -1,0 +1,1440 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ברחובות שלנו — משחק אותיות ולוח</title>
+  <style>
+    :root{
+      /* פלטת צבעים לפי הרפרנס: שחור, כתום וליים */
+      --bg:#000000;
+      --stage:#FD8D1D;
+      --ink:#242120;
+      --accent:#BDD73C;
+      --text:#F5F5F5;
+      --muted:#E7E7E7;
+      --panel:#101010;
+      --panel2:#1a1a1a;
+      --good:#4ade80;
+      --bad:#fb7185;
+      --warn:#fbbf24;
+      --shadow: 0 14px 40px rgba(0,0,0,.45);
+      --radius:18px;
+      --radius2:14px;
+      --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Hebrew", sans-serif;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      overflow-x:hidden;
+    }
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      background: rgba(0,0,0,.92);
+      border-bottom:1px solid rgba(189,215,60,.25);
+      backdrop-filter: blur(10px);
+    }
+
+    .brand{display:flex; align-items:center; gap:10px;}
+    .logo{
+      width:36px;
+      height:36px;
+      border-radius:14px;
+      background: radial-gradient(circle at 30% 20%, rgba(189,215,60,.95), rgba(189,215,60,.2) 55%, rgba(0,0,0,.15) 60%),
+                  linear-gradient(135deg, rgba(189,215,60,.95), rgba(253,141,29,.25));
+      box-shadow: var(--shadow);
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .brand-title{
+      display:flex;
+      flex-direction:column;
+      line-height:1.1;
+    }
+    .brand-title b{
+      color: var(--accent);
+      font-size:14px;
+      letter-spacing:.4px;
+      text-shadow: 0 2px 0 rgba(0,0,0,.35);
+    }
+    .brand-title span{
+      font-size:12px;
+      color: rgba(189,215,60,.8);
+    }
+
+    .hud{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .pill{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.04);
+      border:1px solid rgba(189,215,60,.25);
+      color: rgba(189,215,60,.92);
+      font-size:12px;
+      user-select:none;
+    }
+    .pill .dot{
+      width:8px;
+      height:8px;
+      border-radius:50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 3px rgba(189,215,60,.18);
+    }
+    .btn{
+      cursor:pointer;
+      padding:9px 12px;
+      border-radius:12px;
+      border:1px solid rgba(189,215,60,.35);
+      background: rgba(189,215,60,.10);
+      color: var(--accent);
+      font-weight:700;
+      font-size:13px;
+      box-shadow: 0 10px 22px rgba(0,0,0,.28);
+      transition: transform .08s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      background: rgba(189,215,60,.14);
+      border-color: rgba(189,215,60,.55);
+    }
+    .btn:active{
+      transform: translateY(0px) scale(.99);
+    }
+    .btn.secondary{
+      background: rgba(255,255,255,.04);
+      color: var(--text);
+      border-color: rgba(255,255,255,.14);
+      font-weight:600;
+    }
+    .btn.danger{
+      border-color: rgba(251,113,133,.5);
+      background: rgba(251,113,133,.12);
+      color: #ffd6dd;
+    }
+
+    main{
+      min-height: calc(100svh - 58px - 74px);
+    }
+
+    /* אזור כתום (עולם האותיות) */
+    .stage{
+      background: linear-gradient(180deg, #FF9A2E 0%, #FD8D1D 45%, #F98412 100%);
+      position:relative;
+      padding-bottom: 16px;
+    }
+    .stage::before{
+      content:"";
+      position:absolute;
+      inset:0;
+      opacity:.16;
+      background:
+        radial-gradient(800px 260px at 60% 8%, rgba(0,0,0,.75), transparent 55%),
+        radial-gradient(700px 260px at 20% 30%, rgba(0,0,0,.55), transparent 60%);
+      pointer-events:none;
+    }
+    .section{
+      padding: 14px 14px 10px;
+      position:relative;
+      z-index:1;
+    }
+    .row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:flex-start;
+    }
+    .card{
+      background: rgba(0,0,0,.72);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 12px;
+    }
+    .card h2{
+      margin:0 0 10px 0;
+      font-size:14px;
+      color: var(--accent);
+      letter-spacing:.3px;
+    }
+    .muted{
+      color: rgba(255,255,255,.78);
+      font-size:12px;
+      line-height:1.35;
+    }
+    /* מחסן אותיות */
+    .inventory{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      min-height: 42px;
+      padding:10px;
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+    }
+    .chip{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:38px;
+      height:38px;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #1d1d1d 0%, #0f0f0f 100%);
+      border:2px solid rgba(255,255,255,.08);
+      box-shadow: 0 10px 25px rgba(0,0,0,.25);
+      font-weight:900;
+      font-size:18px;
+      color: var(--text);
+      cursor:pointer;
+      user-select:none;
+      position:relative;
+    }
+    .chip.selected{
+      outline: 3px solid rgba(189,215,60,.45);
+      box-shadow: 0 0 0 6px rgba(189,215,60,.14);
+    }
+    .chip small{
+      position:absolute;
+      bottom:-8px;
+      left:50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.78);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius:999px;
+      padding:2px 6px;
+      font-size:10px;
+      color: rgba(255,255,255,.85);
+      white-space:nowrap;
+    }
+
+    /* שרשרת */
+    .chain-wrap{
+      position:relative;
+      border-radius: var(--radius);
+      overflow:hidden;
+      border: 1px solid rgba(0,0,0,.18);
+      background: rgba(0,0,0,.10);
+    }
+    .chain-top{
+      height: 22px;
+      background:
+        repeating-linear-gradient(90deg,
+          rgba(0,0,0,.92) 0 18px,
+          rgba(0,0,0,.25) 18px 26px);
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      box-shadow: inset 0 2px 0 rgba(255,255,255,.08);
+    }
+    .chain-scroll{
+      display:flex;
+      gap:16px;
+      padding: 14px;
+      overflow-x:auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-color: rgba(0,0,0,.5) rgba(255,255,255,.08);
+    }
+    .chain-scroll::-webkit-scrollbar{height:10px}
+    .chain-scroll::-webkit-scrollbar-thumb{background: rgba(0,0,0,.45); border-radius: 999px;}
+    .chain-scroll::-webkit-scrollbar-track{background: rgba(255,255,255,.10); border-radius: 999px;}
+    .letter-card{
+      width: 140px;
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      background: linear-gradient(180deg, #1d1d1d 0%, #0f0f0f 100%);
+      border:2px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      box-shadow: 0 10px 25px rgba(0,0,0,.35);
+      padding: 12px;
+      position:relative;
+      cursor:pointer;
+      user-select:none;
+      transform: rotate(-1.5deg);
+      transition: transform .12s ease, filter .12s ease;
+    }
+    .letter-card:nth-child(2n){transform: rotate(1.2deg);} 
+    .letter-card:hover{
+      transform: rotate(0deg) translateY(-2px);
+      filter: brightness(1.05);
+    }
+    .letter-card.locked::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.55));
+      pointer-events:none;
+    }
+    .tag{
+      position:absolute;
+      top:10px;
+      left:10px;
+      background: rgba(189,215,60,.15);
+      border: 1px solid rgba(189,215,60,.35);
+      color: var(--accent);
+      font-size:11px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      z-index:2;
+    }
+    .letter{
+      height: 76px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size: 54px;
+      font-weight: 1000;
+      color: var(--text);
+      text-shadow: 0 2px 0 rgba(0,0,0,.35);
+      position:relative;
+      z-index:2;
+    }
+    .lock-icon{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      font-size:12px;
+      color: rgba(189,215,60,.95);
+      position:relative;
+      z-index:2;
+    }
+
+    /* עולם הלוח */
+    .board-stage{
+      background: linear-gradient(180deg, rgba(0,0,0,.95) 0%, rgba(0,0,0,.88) 100%);
+      padding-bottom: 18px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+    .board-wrap{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .board-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .grid-container{
+      position:relative;
+      overflow:auto;
+      max-width: 100%;
+    }
+    .grid{
+      width:min(92vw, 900px);
+      aspect-ratio: 1 / 1;
+      display:grid;
+      grid-template-columns: repeat(30, 1fr);
+      grid-template-rows: repeat(30, 1fr);
+      gap: 2px;
+      padding: 8px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      box-shadow: var(--shadow);
+      direction: rtl;
+      user-select:none;
+      touch-action: manipulation;
+      transform-origin: center center;
+    }
+    .cell{
+      background: rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius: 8px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+      cursor:pointer;
+      overflow:hidden;
+      transition: transform .08s ease, background .12s ease, border-color .12s ease;
+    }
+    .cell:hover{background: rgba(255,255,255,.07);} 
+    .cell.selected{
+      outline: 3px solid rgba(189,215,60,.45);
+      box-shadow: 0 0 0 6px rgba(189,215,60,.12);
+    }
+    .tile{
+      width:100%;
+      height:100%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 1000;
+      font-size: 20px;
+      background: linear-gradient(180deg, #222 0%, #0f0f0f 100%);
+      border:1px solid rgba(255,255,255,.10);
+      color: var(--text);
+    }
+    .tile.new{
+      border-color: rgba(189,215,60,.55);
+      box-shadow: inset 0 0 0 2px rgba(189,215,60,.18);
+    }
+    .owner{
+      position:absolute;
+      bottom:2px;
+      left:3px;
+      font-size:9px;
+      color: rgba(255,255,255,.85);
+      background: rgba(0,0,0,.65);
+      border:1px solid rgba(255,255,255,.10);
+      padding: 1px 4px;
+      border-radius: 999px;
+      pointer-events:none;
+      max-width: 92%;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+
+    /* טאבים */
+    .tabs{
+      position:sticky;
+      bottom:0;
+      z-index:10;
+      padding: 10px 12px;
+      background: rgba(0,0,0,.92);
+      border-top: 1px solid rgba(189,215,60,.25);
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      backdrop-filter: blur(10px);
+    }
+    .tab{
+      flex:1;
+      max-width: 260px;
+      text-align:center;
+      padding: 12px 12px;
+      border-radius: 16px;
+      cursor:pointer;
+      user-select:none;
+      border:1px solid rgba(189,215,60,.25);
+      background: rgba(255,255,255,.04);
+      color: rgba(189,215,60,.90);
+      font-weight: 900;
+      letter-spacing:.2px;
+    }
+    .tab.active{
+      background: rgba(189,215,60,.18);
+      border-color: rgba(189,215,60,.55);
+      color: var(--accent);
+      box-shadow: 0 12px 28px rgba(0,0,0,.35);
+    }
+
+    /* מודאל כללי */
+    .modal-backdrop{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.65);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 14px;
+      z-index:100;
+    }
+    .modal{
+      width:min(92vw, 560px);
+      background: rgba(0,0,0,.92);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+    .modal header{
+      position:static;
+      background: transparent;
+      border:0;
+      padding: 0 0 10px 0;
+      backdrop-filter:none;
+    }
+    .modal h3{
+      margin:0;
+      font-size:15px;
+      color: var(--accent);
+    }
+    .modal .body{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .field label{
+      font-size:12px;
+      color: rgba(255,255,255,.86);
+    }
+    input[type="text"], textarea{
+      width:100%;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      padding: 11px 12px;
+      font-size: 14px;
+      outline: none;
+    }
+    textarea{min-height: 120px; resize: vertical;}
+    .help{
+      font-size:12px;
+      color: rgba(255,255,255,.70);
+      line-height:1.35;
+    }
+    .modal .footer{
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+      padding-top: 12px;
+    }
+    .msg{
+      padding:10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      font-size: 13px;
+      line-height:1.35;
+    }
+    .msg.good{border-color: rgba(74,222,128,.35); background: rgba(74,222,128,.12);} 
+    .msg.bad{border-color: rgba(251,113,133,.45); background: rgba(251,113,133,.12);} 
+    .msg.warn{border-color: rgba(251,191,36,.45); background: rgba(251,191,36,.12); color: #fff7d1;}
+
+    .hidden{display:none !important;}
+    .center{display:flex; align-items:center; justify-content:center;}
+
+    /* התאמה לטלפונים קטנים */
+    @media (max-width: 420px){
+      .letter-card{width: 128px;}
+      .grid{width: 94vw;}
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true"></div>
+      <div class="brand-title">
+        <b>ברחובות שלנו</b>
+        <span id="subTitle">מPrototype מקומי</span>
+      </div>
+    </div>
+    <div class="hud">
+      <div class="pill" title="המשתמש הנוכחי">
+        <span class="dot"></span>
+        <span id="hudUser">לא מחובר</span>
+      </div>
+      <div class="pill" title="הנקודות שלך">
+        ⭐ <span id="hudScore">0</span>
+      </div>
+      <button class="btn secondary" id="btnScores">לוח נקודות</button>
+      <button class="btn secondary" id="btnSettings">הגדרות</button>
+      <button class="btn danger" id="btnLogout">יציאה</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- עולם האותיות -->
+    <section id="lettersWorld" class="stage">
+      <div class="section">
+        <div class="row">
+          <div class="card" style="flex:1 1 420px;">
+            <h2>מחסן האותיות</h2>
+            <div class="muted">אותיות שפתרת נכנסות לכאן. בעולם הלוח תבחר אות ואז משבצת.</div>
+            <div style="height:10px"></div>
+            <div id="inventory" class="inventory" aria-label="מחסן אותיות"></div>
+            <div style="height:10px"></div>
+            <div class="board-actions">
+              <button class="btn" id="btnGoBoard">עבור לעולם הלוח</button>
+              <button class="btn secondary" id="btnClearSelection">נקה בחירה</button>
+            </div>
+          </div>
+
+          <div class="card" style="flex:1 1 320px;">
+            <h2>איך זה עובד</h2>
+            <div class="muted">
+              • גלול ימינה/שמאלה לאורך השרשרת כדי לראות עוד אותיות.<br/>
+              • לחץ על כרטיסיה כדי לענות על שאלה.<br/>
+              • תשובה נכונה → האות שלך.<br/>
+              • הכל נשמר מקומית בדפדפן (LocalStorage).
+            </div>
+          </div>
+        </div>
+        <div style="height:12px"></div>
+        <div class="chain-wrap">
+          <div class="chain-top" aria-hidden="true"></div>
+          <div id="chainScroll" class="chain-scroll" aria-label="שרשרת אותיות"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- עולם הלוח -->
+    <section id="boardWorld" class="board-stage hidden">
+      <div class="section">
+        <div class="row">
+          <div class="card board-wrap" style="flex:1 1 420px;">
+            <h2>עולם הלוח</h2>
+            <div class="muted">
+              בחר אות מהמחסן → לחץ על משבצת ריקה להצבה. בסיום לחץ "בדוק מילה".
+            </div>
+            <div style="height:10px"></div>
+            <div id="boardStatus" class="msg warn hidden"></div>
+            <div class="board-actions">
+              <button class="btn" id="btnCheckWord">בדוק מילה</button>
+              <button class="btn secondary" id="btnUndoTurn">בטל תור (החזר אותיות)</button>
+              <button class="btn secondary" id="btnBackLetters">חזור לעולם האותיות</button>
+            </div>
+            <div style="height:10px"></div>
+            <!-- בקרה לזום -->
+            <div class="board-actions">
+              <button class="btn secondary" id="btnZoomOut">– זום אאוט</button>
+              <button class="btn secondary" id="btnZoomIn">+ זום אין</button>
+            </div>
+            <div style="height:10px"></div>
+            <div class="card" style="padding:10px; border-radius:14px; background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.10); box-shadow:none;">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+                <div class="muted" style="font-weight:800; color: rgba(189,215,60,.95);">אות נבחרת:</div>
+                <div id="selectedLetterView" class="chip" style="width:48px;height:48px;font-size:22px;cursor:default;opacity:.9;">—</div>
+              </div>
+              <div style="height:8px"></div>
+              <div class="muted">מחסן (לחץ כדי לבחור אות):</div>
+              <div style="height:8px"></div>
+              <div id="inventoryBoard" class="inventory"></div>
+            </div>
+          </div>
+          <div class="center" style="flex:1 1 320px;">
+            <div class="grid-container">
+              <div id="grid" class="grid" aria-label="לוח משחק 30 על 30"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div class="tabs">
+    <div class="tab active" id="tabLetters">עולם האותיות</div>
+    <div class="tab" id="tabBoard">עולם הלוח</div>
+  </div>
+  <!-- מודאל כניסה -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal">
+      <header>
+        <h3>כניסה למשחק</h3>
+      </header>
+      <div class="body">
+        <div class="msg warn">
+          בלי שרת המשחק נשמר מקומית בדפדפן. "שחקנים אחרים" יופיעו רק אם נכנסו מאותו מחשב/דפדפן.
+        </div>
+        <div class="field">
+          <label>בחר שם משתמש (ייחודי)</label>
+          <input type="text" id="loginName" placeholder="למשל: Amir" autocomplete="off"/>
+          <div class="help">שם המשתמש נשמר. אם כבר קיים — לא ניתן להשתמש בו.</div>
+        </div>
+        <div id="loginMsg" class="msg bad hidden"></div>
+      </div>
+      <div class="footer">
+        <button class="btn" id="btnLogin">היכנס</button>
+      </div>
+    </div>
+  </div>
+  <!-- מודאל שאלה -->
+  <div class="modal-backdrop" id="quizModal">
+    <div class="modal">
+      <header style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <h3>שאלה</h3>
+        <div class="tag" id="quizLetterTag">אות: —</div>
+      </header>
+      <div class="body">
+        <div class="msg" id="quizQuestion">—</div>
+        <div class="help" id="quizHint">מספר אותיות: —</div>
+        <div class="field">
+          <label>התשובה שלך</label>
+          <input type="text" id="quizAnswer" placeholder="כתוב/כתבי כאן" autocomplete="off"/>
+        </div>
+        <div id="quizMsg" class="msg hidden"></div>
+      </div>
+      <div class="footer">
+        <button class="btn secondary" id="btnQuizClose">סגור</button>
+        <button class="btn" id="btnQuizSubmit">בדוק</button>
+      </div>
+    </div>
+  </div>
+  <!-- מודאל תוצאה -->
+  <div class="modal-backdrop" id="resultModal">
+    <div class="modal">
+      <header>
+        <h3>תוצאה</h3>
+      </header>
+      <div class="body">
+        <div id="resultBody" class="msg">—</div>
+      </div>
+      <div class="footer">
+        <button class="btn" id="btnResultOk">סבבה</button>
+      </div>
+    </div>
+  </div>
+  <!-- מודאל לוח נקודות -->
+  <div class="modal-backdrop" id="scoresModal">
+    <div class="modal">
+      <header style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <h3>לוח נקודות</h3>
+        <button class="btn secondary" id="btnScoresClose">סגור</button>
+      </header>
+      <div class="body">
+        <div id="scoresBody" class="msg">—</div>
+      </div>
+      <div class="footer">
+        <button class="btn danger" id="btnResetAll">איפוס הכל (מסוכן)</button>
+      </div>
+    </div>
+  </div>
+  <!-- מודאל הגדרות -->
+  <div class="modal-backdrop" id="settingsModal">
+    <div class="modal">
+      <header style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <h3>הגדרות</h3>
+        <button class="btn secondary" id="btnSettingsClose">סגור</button>
+      </header>
+      <div class="body">
+        <div class="msg">
+          <b style="color:var(--accent)">מילון עברית מקומי</b><br/>
+          המשחק בודק מילים מול מילון פשוט כדי שהכל יעבוד בלי אינטרנט. אפשר להוסיף מילים כאן (מילה אחת בכל שורה).
+        </div>
+        <div class="field">
+          <label>הוסף מילים למילון</label>
+          <textarea id="dictTextarea" placeholder="למשל:\nשלום\nמפתח\nחידה"></textarea>
+          <div class="help">טיפ: שמור מילים בלי ניקוד. המשחק מתעלם מרווחים ומקפים.</div>
+        </div>
+        <div id="settingsMsg" class="msg hidden"></div>
+      </div>
+      <div class="footer">
+        <button class="btn secondary" id="btnDictLoad">טען מילון נוכחי</button>
+        <button class="btn" id="btnDictSave">שמור מילון</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  /* =========================
+     Storage + State
+  ========================== */
+  const STORE_KEY = "chainboard_state_v1";
+  const SESSION_KEY = "chainboard_current_user_v1";
+  const DICT_KEY = "chainboard_dict_extra_v1";
+
+  const HEBREW_LETTERS = ["א","ב","ג","ד","ה","ו","ז","ח","ט","י","כ","ל","מ","נ","ס","ע","פ","צ","ק","ר","ש","ת"];
+  const QUESTIONS = [
+    { q: "בירת ישראל?", a: ["ירושלים"] },
+    { q: "הכוכב הקרוב ביותר לכדור הארץ?", a: ["שמש"] },
+    { q: "מה ההפך מ'גדול'?", a: ["קטן"] },
+    { q: "איך קוראים לשפת האם של המשחק הזה?", a: ["עברית"] },
+    { q: "מה שותים כשצמאים?", a: ["מים"] },
+    { q: "מה שם הצבע של הרקע הגדול ברפרנס (מילה אחת)?", a: ["כתום"] },
+    { q: "מה אובייקט שפותח מנעול?", a: ["מפתח"] },
+    { q: "מה מסתובב סביב כדור הארץ?", a: ["ירח"] },
+    { q: "מה קוראים לזה כשאותיות יוצרות יחד…?", a: ["מילה"] },
+    { q: "מה קוראים ללוח עם משבצות כמו בשבץ־נא?", a: ["לוח"] }
+  ];
+
+  function normWord(s){
+    return (s||"")
+      .trim()
+      .replace(/\s+/g,"")
+      .replace(/[־-]/g,"")
+      .replace(/[\"\""']/g,"")
+      .replace(/[^\u0590-\u05FF]/g, "");
+  }
+  const BASE_DICT = new Set([
+    "שלום","חידה","מפתח","מנעול","שרשרת","רחוב","משחק","אות","מילה","לוח","שבץ","נא","חבר","חברים","בית","עיר","אור","מים",
+    "אדם","ילד","ילדה","נוער","ספר","כדור","כוכב","שמש","ירח","ים","אבן","אש","רוח","זמן","דרך","סוד","קוד","מסך",
+    "עץ","פרח","דג","חתול","כלב","מוזיקה","תוף","קצב","לב","ראש","יד","רגל","שיר","חלום","אמת","שקר","דלת","חלון",
+    "טלפון","מחשב","אינטרנט","ישראל","עברית","מקום","שאלה","תשובה","ניקוד","נקודות","תור","חוק","כללים","חיבור","קשר",
+    "אח","אחות","אבא","אמא","ילדים","שם","תמונה","סיפור","שביל","כביש","שלט","ספסל","כיסא","מוזיאון","קלף","קלפים",
+    "שחמט","מלכה","מלך","רץ","צריח","פרש","חייל","אוצר","תיבה","מפה","מנורה","מפתח","מנעול"
+  ].map(normWord));
+
+  function getExtraDict(){
+    const raw = localStorage.getItem(DICT_KEY);
+    if(!raw) return new Set();
+    try{
+      const arr = JSON.parse(raw);
+      return new Set(arr.map(normWord).filter(Boolean));
+    }catch(e){ return new Set(); }
+  }
+  function setExtraDict(set){
+    localStorage.setItem(DICT_KEY, JSON.stringify([...set]));
+  }
+  function fullDict(){
+    const extra = getExtraDict();
+    const all = new Set(BASE_DICT);
+    for(const w of extra) all.add(w);
+    return all;
+  }
+
+  function makeLetterDeck(){
+    const deck = [];
+    let id = 1;
+    while(deck.length < 100){
+      for(const letter of HEBREW_LETTERS){
+        if(deck.length >= 100) break;
+        deck.push({ id: "L" + (id++), letter: letter, qIndex: deck.length % QUESTIONS.length, claimedBy: null });
+      }
+    }
+    return deck;
+  }
+  function loadState(){
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw){
+      const fresh = {
+        users: {},
+        letters: makeLetterDeck(),
+        board: { size: 30, tiles: {} }
+      };
+      localStorage.setItem(STORE_KEY, JSON.stringify(fresh));
+      return fresh;
+    }
+    try { return JSON.parse(raw); }
+    catch(e){
+      localStorage.removeItem(STORE_KEY);
+      return loadState();
+    }
+  }
+  function saveState(s){
+    localStorage.setItem(STORE_KEY, JSON.stringify(s));
+  }
+  function getCurrentUser(){
+    return localStorage.getItem(SESSION_KEY) || "";
+  }
+  function setCurrentUser(name){
+    localStorage.setItem(SESSION_KEY, name);
+  }
+  function clearCurrentUser(){
+    localStorage.removeItem(SESSION_KEY);
+  }
+
+  const els = {
+    lettersWorld: document.getElementById("lettersWorld"),
+    boardWorld: document.getElementById("boardWorld"),
+    tabLetters: document.getElementById("tabLetters"),
+    tabBoard: document.getElementById("tabBoard"),
+    hudUser: document.getElementById("hudUser"),
+    hudScore: document.getElementById("hudScore"),
+    inventory: document.getElementById("inventory"),
+    inventoryBoard: document.getElementById("inventoryBoard"),
+    selectedLetterView: document.getElementById("selectedLetterView"),
+    chainScroll: document.getElementById("chainScroll"),
+    grid: document.getElementById("grid"),
+    boardStatus: document.getElementById("boardStatus"),
+    btnGoBoard: document.getElementById("btnGoBoard"),
+    btnBackLetters: document.getElementById("btnBackLetters"),
+    btnClearSelection: document.getElementById("btnClearSelection"),
+    btnUndoTurn: document.getElementById("btnUndoTurn"),
+    btnCheckWord: document.getElementById("btnCheckWord"),
+    btnScores: document.getElementById("btnScores"),
+    btnSettings: document.getElementById("btnSettings"),
+    btnLogout: document.getElementById("btnLogout"),
+    btnZoomIn: document.getElementById("btnZoomIn"),
+    btnZoomOut: document.getElementById("btnZoomOut"),
+    loginModal: document.getElementById("loginModal"),
+    loginName: document.getElementById("loginName"),
+    btnLogin: document.getElementById("btnLogin"),
+    loginMsg: document.getElementById("loginMsg"),
+    quizModal: document.getElementById("quizModal"),
+    quizLetterTag: document.getElementById("quizLetterTag"),
+    quizQuestion: document.getElementById("quizQuestion"),
+    quizHint: document.getElementById("quizHint"),
+    quizAnswer: document.getElementById("quizAnswer"),
+    quizMsg: document.getElementById("quizMsg"),
+    btnQuizSubmit: document.getElementById("btnQuizSubmit"),
+    btnQuizClose: document.getElementById("btnQuizClose"),
+    resultModal: document.getElementById("resultModal"),
+    resultBody: document.getElementById("resultBody"),
+    btnResultOk: document.getElementById("btnResultOk"),
+    scoresModal: document.getElementById("scoresModal"),
+    scoresBody: document.getElementById("scoresBody"),
+    btnScoresClose: document.getElementById("btnScoresClose"),
+    btnResetAll: document.getElementById("btnResetAll"),
+    settingsModal: document.getElementById("settingsModal"),
+    dictTextarea: document.getElementById("dictTextarea"),
+    btnDictLoad: document.getElementById("btnDictLoad"),
+    btnDictSave: document.getElementById("btnDictSave"),
+    btnSettingsClose: document.getElementById("btnSettingsClose"),
+    settingsMsg: document.getElementById("settingsMsg"),
+  };
+
+  let state = loadState();
+  let selectedInventoryIndex = -1;
+  let selectedCell = null;
+  let pendingPlacement = [];
+  let openLetterCardId = null;
+  let boardScale = 1;
+
+  function showModal(el){ el.style.display = "flex"; }
+  function hideModal(el){ el.style.display = "none"; }
+  function setMsg(el, text, kind){
+    el.classList.remove("hidden","good","bad","warn");
+    el.classList.add(kind);
+    el.textContent = text;
+  }
+  function clearMsg(el){
+    el.classList.add("hidden");
+    el.textContent = "";
+    el.classList.remove("good","bad","warn");
+  }
+  function ensureLoggedIn(){
+    const u = getCurrentUser();
+    if(!u){
+      showModal(els.loginModal);
+      els.loginName.focus();
+      return false;
+    }
+    if(!state.users[u]){
+      state.users[u] = { score: 0, inventory: [] };
+      saveState(state);
+    }
+    return true;
+  }
+  function login(name){
+    name = (name||"").trim();
+    if(!name) return {ok:false, msg:"צריך שם משתמש."};
+    if(!/^[\u0590-\u05FFa-zA-Z0-9 _.-]{2,20}$/.test(name)){
+      return {ok:false, msg:"שם לא תקין. 2–20 תווים, בלי סימנים מיוחדים."};
+    }
+    if(state.users[name]){
+      return {ok:false, msg:"שם משתמש כבר תפוס."};
+    }
+    state.users[name] = { score:0, inventory: [] };
+    saveState(state);
+    setCurrentUser(name);
+    return {ok:true};
+  }
+  function updateHud(){
+    const u = getCurrentUser();
+    if(!u){
+      els.hudUser.textContent = "לא מחובר";
+      els.hudScore.textContent = "0";
+      return;
+    }
+    els.hudUser.textContent = u;
+    els.hudScore.textContent = String(state.users[u]?.score ?? 0);
+  }
+  function makeChip(ch, idx){
+    const u = getCurrentUser();
+    const chip = document.createElement("div");
+    chip.className = "chip";
+    chip.textContent = ch;
+    const small = document.createElement("small");
+    small.textContent = u;
+    chip.appendChild(small);
+    chip.addEventListener("click", () => {
+      selectedInventoryIndex = idx;
+      updateSelectedLetterUI();
+      highlightSelectedChip();
+    });
+    return chip;
+  }
+  function renderInventory(){
+    const u = getCurrentUser();
+    els.inventory.innerHTML = "";
+    els.inventoryBoard.innerHTML = "";
+    selectedInventoryIndex = -1;
+    els.selectedLetterView.textContent = "—";
+    if(!u){ return; }
+    const inv = state.users[u].inventory || [];
+    if(inv.length === 0){
+      const msg = document.createElement("div");
+      msg.className = "muted";
+      msg.textContent = "אין עדיין אותיות. פתור כרטיסיות בשרשרת.";
+      els.inventory.appendChild(msg);
+      const msg2 = msg.cloneNode(true);
+      els.inventoryBoard.appendChild(msg2);
+      return;
+    }
+    inv.forEach((ch, idx) => {
+      const chip1 = makeChip(ch, idx);
+      const chip2 = makeChip(ch, idx);
+      els.inventory.appendChild(chip1);
+      els.inventoryBoard.appendChild(chip2);
+    });
+  }
+  function updateSelectedLetterUI(){
+    const u = getCurrentUser();
+    if(!u) return;
+    const inv = state.users[u].inventory || [];
+    if(selectedInventoryIndex < 0 || selectedInventoryIndex >= inv.length){
+      els.selectedLetterView.textContent = "—";
+      return;
+    }
+    els.selectedLetterView.textContent = inv[selectedInventoryIndex];
+  }
+  function highlightSelectedChip(){
+    const mark = (container) => {
+      [...container.querySelectorAll(".chip")].forEach((c,i) => {
+        c.classList.toggle("selected", i === selectedInventoryIndex);
+      });
+    };
+    mark(els.inventory);
+    mark(els.inventoryBoard);
+  }
+  function renderChain(){
+    els.chainScroll.innerHTML = "";
+    for(const card of state.letters){
+      const div = document.createElement("div");
+      div.className = "letter-card";
+      const claimed = !!card.claimedBy;
+      if(claimed) div.classList.add("locked");
+      const tag = document.createElement("div");
+      tag.className = "tag";
+      tag.textContent = claimed ? ("נתפס ע" + '\u2022' + "י " + card.claimedBy) : "לחץ לשאלה";
+      div.appendChild(tag);
+      const letter = document.createElement("div");
+      letter.className = "letter";
+      letter.textContent = card.letter;
+      div.appendChild(letter);
+      const lock = document.createElement("div");
+      lock.className = "lock-icon";
+      lock.textContent = claimed ? "🔒 נעול" : "🔓 פתוח";
+      div.appendChild(lock);
+      div.addEventListener("click", () => {
+        if(!ensureLoggedIn()) return;
+        if(card.claimedBy){
+          flashStatus("הכרטיסיה כבר נתפסה.", "warn");
+          return;
+        }
+        openQuizForCard(card.id);
+      });
+      els.chainScroll.appendChild(div);
+    }
+  }
+  function openQuizForCard(cardId){
+    const card = state.letters.find(x => x.id === cardId);
+    if(!card) return;
+    openLetterCardId = cardId;
+    const q = QUESTIONS[card.qIndex] || QUESTIONS[0];
+    els.quizLetterTag.textContent = "אות: " + card.letter;
+    els.quizQuestion.textContent = q.q;
+    const ans0 = Array.isArray(q.a) ? q.a[0] : q.a;
+    const ansNorm = normWord(ans0);
+    els.quizHint.textContent = "מספר אותיות (ללא רווחים/מקפים): " + (ansNorm.length || "—");
+    els.quizAnswer.value = "";
+    clearMsg(els.quizMsg);
+    showModal(els.quizModal);
+    setTimeout(() => els.quizAnswer.focus(), 50);
+  }
+  function submitQuiz(){
+    const u = getCurrentUser();
+    if(!u || !openLetterCardId) return;
+    const card = state.letters.find(x => x.id === openLetterCardId);
+    if(!card) return;
+    const q = QUESTIONS[card.qIndex] || QUESTIONS[0];
+    const userAns = normWord(els.quizAnswer.value);
+    const answers = Array.isArray(q.a) ? q.a : [q.a];
+    const ok = answers.map(normWord).includes(userAns);
+    if(!userAns){
+      setMsg(els.quizMsg, "כתוב תשובה לפני בדיקה.", "warn");
+      return;
+    }
+    if(ok){
+      card.claimedBy = u;
+      state.users[u].inventory.push(card.letter);
+      saveState(state);
+      setMsg(els.quizMsg, "נכון! האות נכנסה למחסן.", "good");
+      renderChain();
+      renderInventory();
+      updateHud();
+      setTimeout(() => { hideModal(els.quizModal); openLetterCardId=null; }, 700);
+    }else{
+      setMsg(els.quizMsg, "לא נכון. נסה שוב (או סגור ונסה כרטיסיה אחרת).", "bad");
+    }
+  }
+  function keyOf(r,c){ return `${r},${c}`; }
+  function getTileAt(r,c){
+    const k = keyOf(r,c);
+    if(state.board.tiles[k]) return state.board.tiles[k];
+    const p = pendingPlacement.find(x => x.r===r && x.c===c);
+    if(p) return {ch: p.ch, owner: getCurrentUser(), pending:true};
+    return null;
+  }
+  function inBounds(r,c){ return r>=0 && c>=0 && r<state.board.size && c<state.board.size; }
+  function neighbors4(r,c){ return [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(([rr,cc]) => inBounds(rr,cc)); }
+  function boardHasAnyTiles(){ return Object.keys(state.board.tiles).length > 0; }
+  function onCellClick(r,c){
+    if(!ensureLoggedIn()) return;
+    selectedCell = {r,c};
+    updateCellSelectionUI();
+    const u = getCurrentUser();
+    const inv = state.users[u].inventory || [];
+    if(selectedInventoryIndex < 0 || selectedInventoryIndex >= inv.length){
+      flashStatus("בחר קודם אות מהמחסן.", "warn");
+      return;
+    }
+    const k = keyOf(r,c);
+    if(state.board.tiles[k]){
+      flashStatus("המשבצת כבר תפוסה.", "warn");
+      return;
+    }
+    if(pendingPlacement.some(p => p.r===r && p.c===c)){
+      flashStatus("כבר הונחה כאן אות בתור הזה.", "warn");
+      return;
+    }
+    const ch = inv[selectedInventoryIndex];
+    pendingPlacement.push({r,c,ch});
+    inv.splice(selectedInventoryIndex, 1);
+    selectedInventoryIndex = -1;
+    updateSelectedLetterUI();
+    highlightSelectedChip();
+    renderInventory();
+    renderBoard();
+    clearStatus();
+  }
+  function updateCellSelectionUI(){
+    const cells = els.grid.querySelectorAll(".cell");
+    cells.forEach(cell => {
+      const r = Number(cell.dataset.r);
+      const c = Number(cell.dataset.c);
+      const sel = selectedCell && selectedCell.r===r && selectedCell.c===c;
+      cell.classList.toggle("selected", !!sel);
+    });
+  }
+  function renderBoard(){
+    const size = state.board.size;
+    els.grid.innerHTML = "";
+    for(let r=0;r<size;r++){
+      for(let c=0;c<size;c++){
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        cell.dataset.r = String(r);
+        cell.dataset.c = String(c);
+        const k = keyOf(r,c);
+        const tile = state.board.tiles[k];
+        if(tile){
+          const t = document.createElement("div");
+          t.className = "tile";
+          t.textContent = tile.ch;
+          cell.appendChild(t);
+          const owner = document.createElement("div");
+          owner.className = "owner";
+          owner.textContent = tile.owner;
+          cell.appendChild(owner);
+        }
+        const pending = pendingPlacement.find(p => p.r===r && p.c===c);
+        if(pending){
+          const t = document.createElement("div");
+          t.className = "tile new";
+          t.textContent = pending.ch;
+          cell.appendChild(t);
+          const owner = document.createElement("div");
+          owner.className = "owner";
+          owner.textContent = getCurrentUser();
+          cell.appendChild(owner);
+        }
+        cell.addEventListener("click", () => onCellClick(r,c));
+        els.grid.appendChild(cell);
+      }
+    }
+    updateCellSelectionUI();
+    els.grid.style.transform = `scale(${boardScale})`;
+  }
+  function undoTurn(){
+    if(!ensureLoggedIn()) return;
+    if(pendingPlacement.length === 0){
+      flashStatus("אין מה לבטל.", "warn");
+      return;
+    }
+    const u = getCurrentUser();
+    const inv = state.users[u].inventory;
+    for(const p of pendingPlacement){
+      inv.push(p.ch);
+    }
+    pendingPlacement = [];
+    selectedInventoryIndex = -1;
+    updateSelectedLetterUI();
+    renderInventory();
+    renderBoard();
+    flashStatus("התור בוטל והאותיות חזרו למחסן.", "good");
+  }
+  function flashStatus(text, kind){ setMsg(els.boardStatus, text, kind); }
+  function clearStatus(){ clearMsg(els.boardStatus); }
+  function collectWordsFormed(mainDir){
+    const found = new Map();
+    function extractWordAt(r,c,dir){
+      if(!getTileAt(r,c)) return null;
+      let dr=0, dc=0, odr=0, odc=0;
+      if(dir === "H"){ dr=0; dc=-1; odr=0; odc=+1; }
+      if(dir === "V"){ dr=+1; dc=0; odr=-1; odc=0; }
+      let sr=r, sc=c;
+      while(inBounds(sr+odr, sc+odc) && getTileAt(sr+odr, sc+odc)){
+        sr+=odr; sc+=odc;
+      }
+      let word="";
+      let rr=sr, cc=sc;
+      while(inBounds(rr,cc) && getTileAt(rr,cc)){
+        word += getTileAt(rr,cc).ch;
+        rr += dr; cc += dc;
+      }
+      return { startR: sr, startC: sc, word };
+    }
+    function addWordFromCell(r,c,dir){
+      const wObj = extractWordAt(r,c,dir);
+      if(!wObj) return;
+      const {startR,startC,word} = wObj;
+      if(word.length < 2) return;
+      const key = `${dir}:${startR},${startC}:${word}`;
+      found.set(key,{dir,startR,startC,word});
+    }
+    const first = pendingPlacement[0];
+    const main = extractWordAt(first.r, first.c, mainDir);
+    if(main && main.word.length >= 2){
+      const k = `${mainDir}:${main.startR},${main.startC}:${main.word}`;
+      found.set(k,{dir:mainDir,startR:main.startR,startC:main.startC, word:main.word});
+    }
+    const crossDir = mainDir === "H" ? "V" : "H";
+    for(const p of pendingPlacement) addWordFromCell(p.r,p.c,crossDir);
+    return [...found.values()];
+  }
+  function failTurn(message){
+    const u = getCurrentUser();
+    const inv = state.users[u].inventory;
+    for(const p of pendingPlacement) inv.push(p.ch);
+    pendingPlacement = [];
+    selectedInventoryIndex = -1;
+    updateSelectedLetterUI();
+    renderInventory();
+    renderBoard();
+    flashStatus(message + " (האותיות חזרו למחסן)", "bad");
+  }
+  function checkTurn(){
+    if(!ensureLoggedIn()) return;
+    clearStatus();
+    if(pendingPlacement.length === 0){
+      flashStatus("צריך להניח לפחות אות אחת לפני בדיקה.", "warn");
+      return;
+    }
+    const rows = new Set(pendingPlacement.map(p=>p.r));
+    const cols = new Set(pendingPlacement.map(p=>p.c));
+    const sameRow = rows.size === 1;
+    const sameCol = cols.size === 1;
+    if(!(sameRow || sameCol)){
+      return failTurn("כל האותיות בתור חייבות להיות באותה שורה או באותה עמודה.");
+    }
+    if(sameRow){
+      const r = pendingPlacement[0].r;
+      const placedCols = pendingPlacement.map(p=>p.c);
+      const minC = Math.min(...placedCols);
+      const maxC = Math.max(...placedCols);
+      for(let c=minC;c<=maxC;c++){
+        if(!getTileAt(r,c)){
+          return failTurn("יש חור באמצע. חייב רצף בלי רווחים.");
+        }
+      }
+    }else{
+      const c = pendingPlacement[0].c;
+      const placedRows = pendingPlacement.map(p=>p.r);
+      const minR = Math.min(...placedRows);
+      const maxR = Math.max(...placedRows);
+      for(let r=minR;r<=maxR;r++){
+        if(!getTileAt(r,c)){
+          return failTurn("יש חור באמצע. חייב רצף בלי רווחים.");
+        }
+      }
+    }
+    if(boardHasAnyTiles()){
+      let connected=false;
+      for(const p of pendingPlacement){
+        for(const [rr,cc] of neighbors4(p.r,p.c)){
+          const k = keyOf(rr,cc);
+          if(state.board.tiles[k]) connected=true;
+        }
+      }
+      if(!connected){
+        return failTurn("בתור שאינו הראשון חייב להיות חיבור לאות קיימת.");
+      }
+    }
+    const mainDir = sameRow ? "H" : "V";
+    const words = collectWordsFormed(mainDir);
+    if(words.length === 0){
+      return failTurn("לא נוצרה מילה באורך 2+.");
+    }
+    const dict = fullDict();
+    const invalid = words.filter(w => w.word.length>=2 && !dict.has(normWord(w.word)));
+    if(invalid.length){
+      const list = invalid.map(x => `“${x.word}”`).join(", ");
+      return failTurn("המילה/מילים לא קיימות במילון: " + list);
+    }
+    const u = getCurrentUser();
+    for(const p of pendingPlacement){
+      state.board.tiles[keyOf(p.r,p.c)] = { ch: p.ch, owner: u };
+    }
+    const placedPoints = pendingPlacement.length;
+    const bonus = Math.max(0, (words.length - 1)) * 2;
+    const total = placedPoints + bonus;
+    state.users[u].score += total;
+    pendingPlacement = [];
+    selectedInventoryIndex = -1;
+    updateSelectedLetterUI();
+    saveState(state);
+    renderBoard();
+    renderInventory();
+    updateHud();
+    const wordsHtml = words.map(w => `• <b>${escapeHtml(w.word)}</b> <span style="opacity:.75">(כיוון: ${w.dir === "H" ? "אופקי" : "אנכי"})</span>`).join("<br/>");
+    els.resultBody.innerHTML =
+      `<div><b style="color:var(--accent)">מילים שנוצרו:</b><br/>${wordsHtml}</div>
+       <div style="height:10px"></div>
+       <div>נקודות על אותיות שהונחו: <b>${placedPoints}</b></div>
+       <div>בונוס (2 נק׳ לכל מילה מעבר לראשונה): <b>${bonus}</b></div>
+       <div style="height:6px"></div>
+       <div class="msg good" style="margin:0">סה״כ לתור: <b>${total}</b> נק׳</div>`;
+    showModal(els.resultModal);
+  }
+  function setWorld(which){
+    const letters = (which === "letters");
+    els.lettersWorld.classList.toggle("hidden", !letters);
+    els.boardWorld.classList.toggle("hidden", letters);
+    els.tabLetters.classList.toggle("active", letters);
+    els.tabBoard.classList.toggle("active", !letters);
+  }
+  function openScores(){
+    const entries = Object.entries(state.users)
+      .map(([name,data]) => ({name, score: data.score || 0}))
+      .sort((a,b) => b.score - a.score);
+    if(entries.length === 0){
+      els.scoresBody.textContent = "אין עדיין שחקנים.";
+      showModal(els.scoresModal);
+      return;
+    }
+    const rows = entries.map((e,i) => {
+      const isMe = e.name === getCurrentUser();
+      return `<div style="display:flex; justify-content:space-between; gap:10px; padding:8px 10px; border-radius:14px; background:${isMe ? "rgba(189,215,60,.14)" : "rgba(255,255,255,.04)"}; border:1px solid rgba(255,255,255,.10);">
+        <div><b>${i+1}.</b> ${escapeHtml(e.name)} ${isMe ? " <span style='color:var(--accent)'>• אתה</span>" : ""}</div>
+        <div><b>${e.score}</b> נק׳</div>
+      </div>`;
+    }).join("<div style='height:8px'></div>");
+    els.scoresBody.innerHTML = rows;
+    showModal(els.scoresModal);
+  }
+  function openSettings(){ clearMsg(els.settingsMsg); showModal(els.settingsModal); }
+  function loadDictIntoTextarea(){
+    const extra = getExtraDict();
+    els.dictTextarea.value = [...extra].sort().join("\n");
+    setMsg(els.settingsMsg, "נטען מילון נוכחי (תוספות).", "good");
+  }
+  function saveDictFromTextarea(){
+    const lines = els.dictTextarea.value.split("\n").map(x => normWord(x)).filter(Boolean);
+    const set = new Set(lines);
+    setExtraDict(set);
+    setMsg(els.settingsMsg, "נשמר! המילון עודכן.", "good");
+  }
+  function resetAll(){
+    if(!confirm("לאפס הכל? זה ימחק משתמשים, לוח, כרטיסיות ומילון תוספות.")) return;
+    localStorage.removeItem(STORE_KEY);
+    localStorage.removeItem(DICT_KEY);
+    clearCurrentUser();
+    state = loadState();
+    pendingPlacement = [];
+    selectedInventoryIndex = -1;
+    selectedCell = null;
+    openLetterCardId = null;
+    boardScale = 1;
+    hideModal(els.scoresModal);
+    boot();
+  }
+  function zoomIn(){ boardScale = Math.min(3, boardScale + 0.1); renderBoard(); }
+  function zoomOut(){ boardScale = Math.max(0.3, boardScale - 0.1); renderBoard(); }
+  function escapeHtml(s){
+    return String(s)
+      .replace(/&/g,"&amp;")
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;")
+      .replace(/\"/g,"&quot;")
+      .replace(/'/g,"&#039;");
+  }
+  function boot(){
+    state = loadState();
+    if(!getCurrentUser()){ showModal(els.loginModal); } else { hideModal(els.loginModal); }
+    const u = getCurrentUser();
+    if(u && !state.users[u]){ state.users[u] = { score:0, inventory:[] }; saveState(state); }
+    updateHud();
+    renderChain();
+    renderInventory();
+    renderBoard();
+    setWorld("letters");
+    clearStatus();
+  }
+  els.tabLetters.addEventListener("click", () => setWorld("letters"));
+  els.tabBoard.addEventListener("click", () => { if(ensureLoggedIn()) setWorld("board"); });
+  els.btnGoBoard.addEventListener("click", () => { if(ensureLoggedIn()) setWorld("board"); });
+  els.btnBackLetters.addEventListener("click", () => setWorld("letters"));
+  els.btnClearSelection.addEventListener("click", () => {
+    selectedInventoryIndex = -1;
+    updateSelectedLetterUI();
+    highlightSelectedChip();
+    flashStatus("בחירה נוקתה.", "good");
+    setTimeout(clearStatus, 800);
+  });
+  els.btnUndoTurn.addEventListener("click", undoTurn);
+  els.btnCheckWord.addEventListener("click", checkTurn);
+  els.btnLogin.addEventListener("click", () => {
+    clearMsg(els.loginMsg);
+    const res = login(els.loginName.value);
+    if(!res.ok){ setMsg(els.loginMsg, res.msg, "bad"); return; }
+    hideModal(els.loginModal);
+    boot();
+  });
+  els.loginName.addEventListener("keydown", (e) => { if(e.key === "Enter") els.btnLogin.click(); });
+  els.btnQuizSubmit.addEventListener("click", submitQuiz);
+  els.btnQuizClose.addEventListener("click", () => { hideModal(els.quizModal); openLetterCardId=null; });
+  els.quizAnswer.addEventListener("keydown", (e) => { if(e.key === "Enter") submitQuiz(); });
+  els.btnResultOk.addEventListener("click", () => hideModal(els.resultModal));
+  els.btnScores.addEventListener("click", openScores);
+  els.btnScoresClose.addEventListener("click", () => hideModal(els.scoresModal));
+  els.btnResetAll.addEventListener("click", resetAll);
+  els.btnSettings.addEventListener("click", openSettings);
+  els.btnSettingsClose.addEventListener("click", () => hideModal(els.settingsModal));
+  els.btnDictLoad.addEventListener("click", loadDictIntoTextarea);
+  els.btnDictSave.addEventListener("click", saveDictFromTextarea);
+  els.btnLogout.addEventListener("click", () => {
+    if(!confirm("לצאת מהמשתמש הנוכחי?")) return;
+    clearCurrentUser();
+    pendingPlacement = [];
+    selectedInventoryIndex = -1;
+    selectedCell = null;
+    openLetterCardId = null;
+    boardScale = 1;
+    boot();
+  });
+  els.btnZoomIn.addEventListener("click", zoomIn);
+  els.btnZoomOut.addEventListener("click", zoomOut);
+  [els.quizModal, els.resultModal, els.scoresModal, els.settingsModal].forEach(m => {
+    const backdrop = m.parentElement;
+    backdrop.addEventListener("click", (e) => {
+      if(e.target === backdrop){ hideModal(backdrop); }
+    });
+  });
+  boot();
+})();
+</script>
+</body>
+</html>
