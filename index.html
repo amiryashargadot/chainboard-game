@@ -8,8 +8,8 @@
   <style>
     :root{
       --bg:#000000;
-      --stage:#f7941d;        /* ✅ כתום חדש */
-      --accent:#BDD73C;
+      --stage:#f7941d;        /* כתום חדש */
+      --accent:#e7e8e9;
       --text:#F5F5F5;
 
       --good:#4ade80;
@@ -239,7 +239,6 @@
 <body>
 <header>
   <div class="brand">
-    <!-- אופציונלי: אם אין לך לוגו, מחק את ה-img ותשאיר title -->
     <img src="logo.png" alt="לוגו"/>
     <div class="title">ChainBoard Color</div>
   </div>
@@ -252,7 +251,6 @@
 </header>
 
 <main>
-  <!-- אזור הכרטיסיות -->
   <section id="cardsWorld" class="stage">
     <div class="section">
       <div class="row">
@@ -262,13 +260,16 @@
             כל כרטיסייה היא חידה. כל משתמש יכול לפתור כל חידה (גם אם כבר פתרו לפניו).
             על כל כרטיסייה תראה כמה משתמשים כבר פתרו אותה.
           </div>
+          <div class="muted" style="margin-top:8px;">
+            טיפ: עדכון קובץ החידות לא “מאפס” פתרונות, כי לכל חידה יש <b>ID קבוע</b>.
+          </div>
         </div>
 
         <div class="card" style="flex:1 1 320px;">
           <h2>איך משחקים</h2>
           <div class="muted">
             • בחוח המשחק בוחרים צבע וצובעים משבצות בלוח 30×30.<br/>
-            • מקבלים נקודה על כל משבצת שנצבעת.<br/>
+            • מקבלים נקודה על כל משבצת שנצבעת (רק בצביעה הראשונה שלה).<br/>
             • שמות המשתמשים על משבצות מוצגים רק בהובר / בטאפ בטלפון.
           </div>
         </div>
@@ -283,7 +284,6 @@
     </div>
   </section>
 
-  <!-- חוח המשחק -->
   <section id="boardWorld" class="board-stage hidden">
     <div class="section">
       <div class="row">
@@ -326,7 +326,6 @@
   <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">להכניס עניין לתוכן</a>
 </footer>
 
-<!-- מודאל כניסה -->
 <div class="modal-backdrop" id="loginModal">
   <div class="modal">
     <header><h3>כניסה</h3></header>
@@ -345,7 +344,6 @@
   </div>
 </div>
 
-<!-- מודאל חידה -->
 <div class="modal-backdrop" id="quizModal">
   <div class="modal">
     <header style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -370,7 +368,6 @@
   </div>
 </div>
 
-<!-- מודאל לוח נקודות -->
 <div class="modal-backdrop" id="scoresModal">
   <div class="modal">
     <header style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -389,7 +386,7 @@
     serverTimestamp, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  // ✅ firebaseConfig שלך (כמו שנתת)
+  // ✅ firebaseConfig שלך
   const firebaseConfig = {
     apiKey: "AIzaSyAXdEWNom2JklbeE5BcO1O3Ku5RyTy5dak",
     authDomain: "chainboard-game.firebaseapp.com",
@@ -413,7 +410,7 @@
   const SESSION_KEY = "chainboard_color_current_user_v1";
   const SIZE = 30;
 
-  // Palette colors (תבחר מה שבא לך)
+  // Palette colors
   const PALETTE = [
     "#f7941d", "#BDD73C", "#00C2FF", "#FF4D6D", "#8B5CF6",
     "#22C55E", "#FBBF24", "#EF4444", "#14B8A6", "#FFFFFF"
@@ -513,10 +510,8 @@
   }
 
   function keyOf(r,c){ return `${r},${c}`; }
-  function inBounds(r,c){ return r>=0 && c>=0 && r<SIZE && c<SIZE; }
 
   function normAnswer(s){
-    // מנרמל תשובה: מוריד רווחים ומקפים ומנקה תווים לא-עבריים/אנגלית/ספרות
     return (s||"")
       .trim()
       .toLowerCase()
@@ -527,35 +522,39 @@
   }
 
   async function loadQuestions(){
-    // ✅ שאלות מגיעות מקובץ נפרד
     const res = await fetch("./questions.json", { cache: "no-store" });
     if(!res.ok) throw new Error("לא הצלחתי לטעון questions.json");
     const data = await res.json();
     if(!Array.isArray(data)) throw new Error("questions.json חייב להיות מערך JSON");
+    // בדיקה בסיסית: id חובה
+    for(const q of data){
+      if(!q?.id) throw new Error("כל חידה חייבת לכלול שדה id (קבוע).");
+    }
     QUESTIONS = data;
   }
 
   async function ensureGameSeeded(){
     await setDoc(gameRef, { createdAt: serverTimestamp() }, { merge:true });
 
-    // Seed quizzes to match QUESTIONS length
+    // Seed quizzes to match QUESTIONS length (by stable id)
     const existing = await getDocs(quizzesCol);
     const existingIds = new Set();
     existing.forEach(d=> existingIds.add(d.id));
 
     const batch = writeBatch(db);
 
-    for(let i=0;i<QUESTIONS.length;i++){
-      const qid = `Q${i+1}`;
+    for (let i = 0; i < QUESTIONS.length; i++) {
+      const q = QUESTIONS[i];
+      const qid = String(q.id);
+
       if(existingIds.has(qid)) continue;
+
       batch.set(doc(db,"games",GAME_ID,"quizzes",qid), {
-        index: i,
         colorIndex: (i % PALETTE.length),
         solvedCount: 0
       });
     }
 
-    // Optional: you can keep extra old quizzes in db; UI will show only current file count.
     await batch.commit();
   }
 
@@ -599,9 +598,11 @@
 
   function renderCards(){
     els.cardsGrid.innerHTML = "";
-    // show exactly as many cards as questions file
-    for(let i=0;i<QUESTIONS.length;i++){
-      const qid = `Q${i+1}`;
+
+    for (let i = 0; i < QUESTIONS.length; i++) {
+      const q = QUESTIONS[i];
+      const qid = String(q.id);
+
       const qMeta = quizzesCache.get(qid) || { colorIndex: i % PALETTE.length, solvedCount: 0 };
       const color = PALETTE[qMeta.colorIndex] || PALETTE[0];
       const solvedCount = Number(qMeta.solvedCount || 0);
@@ -622,7 +623,7 @@
 
       const note = document.createElement("div");
       note.className = "qc-note";
-      note.textContent = "חידה #" + (i+1);
+      note.textContent = "חידה";
       card.appendChild(note);
 
       card.addEventListener("click", ()=>{
@@ -636,20 +637,23 @@
 
   function openQuiz(qid){
     openQuizId = qid;
+
     const meta = quizzesCache.get(qid);
-    const index = meta?.index ?? (parseInt(qid.slice(1),10)-1);
-    const q = QUESTIONS[index];
+    const q = QUESTIONS.find(x => String(x.id) === String(qid));
+
     if(!q){
-      setMsg(els.quizMsg, "לא מצאתי חידה בקובץ questions.json עבור " + qid, "bad");
+      setMsg(els.quizMsg, "לא מצאתי חידה בקובץ questions.json עבור id: " + qid, "bad");
       showModal(els.quizModal);
       return;
     }
 
     clearMsg(els.quizMsg);
     els.quizQuestion.textContent = q.q ?? "—";
+
     const firstAns = Array.isArray(q.a) ? q.a[0] : q.a;
-    const lenHint = q.len ?? normAnswer(firstAns).length ?? "—";
+    const lenHint = (q.len ?? (normAnswer(firstAns).length || "—"));
     els.quizHint.textContent = "מספר תווים (ללא רווחים/מקפים): " + (lenHint || "—");
+
     els.quizSolvedCount.textContent = String(meta?.solvedCount ?? 0);
     els.quizAnswer.value = "";
     showModal(els.quizModal);
@@ -660,9 +664,7 @@
     if(!openQuizId || !currentUser) return;
 
     const qid = openQuizId;
-    const meta = quizzesCache.get(qid);
-    const index = meta?.index ?? (parseInt(qid.slice(1),10)-1);
-    const q = QUESTIONS[index];
+    const q = QUESTIONS.find(x => String(x.id) === String(qid));
     if(!q){ setMsg(els.quizMsg, "חידה לא קיימת בקובץ.", "bad"); return; }
 
     const userAns = normAnswer(els.quizAnswer.value);
@@ -672,7 +674,7 @@
     const ok = answers.includes(userAns);
     if(!ok){ setMsg(els.quizMsg, "לא נכון. נסה שוב.", "bad"); return; }
 
-    // ✅ כל משתמש יכול לפתור כל חידה, אבל "מספר המשתמשים שפתרו" נספר פעם אחת לכל משתמש.
+    // כל משתמש יכול לפתור כל חידה, אבל הספירה עולה פעם אחת לכל משתמש לכל חידה
     const quizRef = doc(db,"games",GAME_ID,"quizzes",qid);
     const solverRef = doc(db,"games",GAME_ID,"quizzes",qid,"solvers",currentUser);
 
@@ -680,8 +682,7 @@
       await runTransaction(db, async (tx)=>{
         const solverSnap = await tx.get(solverRef);
         if(solverSnap.exists()){
-          // כבר ספרנו אותך בחידה הזו
-          return;
+          return; // כבר נספרת בחידה הזו
         }
         const quizSnap = await tx.get(quizRef);
         const solvedCount = Number(quizSnap.data()?.solvedCount || 0);
@@ -727,7 +728,7 @@
         cell.addEventListener("click", async ()=>{
           if(!ensureLoggedIn()) return;
 
-          // ✅ כדי למנוע "farm" נקודות: צובעים רק משבצת ריקה.
+          // צובעים רק משבצת ריקה (מונע farm נקודות)
           if(boardCache.get(k)) return;
 
           const color = PALETTE[selectedColorIndex] || PALETTE[0];
