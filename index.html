@@ -3,17 +3,19 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>במקלטים שלנו — ChainBoard</title>
+  <title>ChainBoard Color</title>
 
   <style>
     :root{
       --bg:#000000;
-      --stage:#FD8D1D;
+      --stage:#f7941d;        /* ✅ כתום חדש */
       --accent:#BDD73C;
       --text:#F5F5F5;
+
       --good:#4ade80;
       --bad:#fb7185;
       --warn:#fbbf24;
+
       --shadow: 0 14px 40px rgba(0,0,0,.45);
       --radius:18px;
       --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Hebrew", sans-serif;
@@ -27,8 +29,11 @@
       padding:10px 14px;background:rgba(0,0,0,.92);
       border-bottom:1px solid rgba(189,215,60,.25);backdrop-filter: blur(10px);
     }
+
     .brand{display:flex;align-items:center;gap:12px;}
     .brand img{height:34px;width:auto;display:block;filter: drop-shadow(0 8px 18px rgba(0,0,0,.35));}
+    .brand .title{font-weight:950;color:rgba(255,255,255,.9);font-size:14px;letter-spacing:.2px}
+
     .hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
     .pill{
       display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;
@@ -50,10 +55,10 @@
     .btn.secondary{background:rgba(255,255,255,.04);color:var(--text);border-color:rgba(255,255,255,.14);font-weight:650;}
     .btn.danger{border-color:rgba(251,113,133,.5);background:rgba(251,113,133,.12);color:#ffd6dd;}
 
-    main{min-height: calc(100svh - 58px - 74px);}
+    main{min-height: calc(100svh - 58px - 74px - 56px);} /* header + tabs + footer */
 
     .stage{
-      background: linear-gradient(180deg, #FF9A2E 0%, #FD8D1D 45%, #F98412 100%);
+      background: linear-gradient(180deg, #ffad45 0%, var(--stage) 45%, #f07d00 100%);
       position:relative;padding-bottom:16px;
     }
     .stage::before{
@@ -75,69 +80,52 @@
     .card h2{margin:0 0 10px 0;font-size:14px;color:var(--accent);letter-spacing:.3px;}
     .muted{color:rgba(255,255,255,.78);font-size:12px;line-height:1.35;}
 
-    .inventory{
-      display:flex;gap:8px;flex-wrap:wrap;min-height:42px;padding:10px;
-      background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;
-    }
-    .chip{
-      display:flex;align-items:center;justify-content:center;
-      width:38px;height:38px;border-radius:12px;
-      background:linear-gradient(180deg,#1d1d1d 0%, #0f0f0f 100%);
-      border:2px solid rgba(255,255,255,.08);
-      box-shadow:0 10px 25px rgba(0,0,0,.25);
-      font-weight:1000;font-size:18px;color:var(--text);
-      cursor:pointer;user-select:none;position:relative;
-    }
-    .chip.selected{outline:3px solid rgba(189,215,60,.45);box-shadow:0 0 0 6px rgba(189,215,60,.14);}
-    .chip small{
-      position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);
-      background:rgba(0,0,0,.78);border:1px solid rgba(255,255,255,.10);
-      border-radius:999px;padding:2px 6px;font-size:10px;color:rgba(255,255,255,.85);white-space:nowrap;
-    }
-
-    .chain-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid rgba(0,0,0,.18);background:rgba(0,0,0,.10);}
-    .chain-top{
+    /* Cards grid */
+    .cards-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid rgba(0,0,0,.18);background:rgba(0,0,0,.10);}
+    .cards-top{
       height:22px;background:repeating-linear-gradient(90deg, rgba(0,0,0,.92) 0 18px, rgba(0,0,0,.25) 18px 26px);
       border-bottom:1px solid rgba(255,255,255,.10);box-shadow:inset 0 2px 0 rgba(255,255,255,.08);
     }
-    .chain-scroll{
+    .cards-grid{
       display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-      grid-auto-rows: 128px;
+      grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+      grid-auto-rows: 130px;
       gap: 12px;
       padding: 14px;
-      max-height: calc(128px * 3 + 12px * 2 + 28px);
+      max-height: calc(130px * 3 + 12px * 2 + 28px);
       overflow:auto;
-      scrollbar-color: rgba(0,0,0,.5) rgba(255,255,255,.08);
     }
-
-    .letter-card{
-      background:linear-gradient(180deg,#1d1d1d 0%, #0f0f0f 100%);
-      border:2px solid rgba(255,255,255,.08);
+    .quiz-card{
       border-radius:18px;
       box-shadow:0 10px 25px rgba(0,0,0,.35);
       padding:12px;position:relative;cursor:pointer;user-select:none;
       transition:transform .12s ease, filter .12s ease;
+      border:2px solid rgba(255,255,255,.10);
+      overflow:hidden;
     }
-    .letter-card:hover{transform:translateY(-2px);filter:brightness(1.05);}
-    /* ✅ נעול = עדיין לא נפתח */
-    .letter-card.locked::after{
-      content:"";position:absolute;inset:0;border-radius:18px;
-      background:linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.55));
-      pointer-events:none;
+    .quiz-card:hover{transform:translateY(-2px);filter:brightness(1.03);}
+    .qc-small{
+      position:absolute;top:10px;right:10px;
+      font-size:11px;color:rgba(0,0,0,.75);
+      background:rgba(255,255,255,.55);border:1px solid rgba(0,0,0,.12);
+      padding:3px 7px;border-radius:999px;
+      backdrop-filter: blur(8px);
     }
-    .tag{
-      position:absolute;top:10px;left:10px;
-      background:rgba(189,215,60,.15);border:1px solid rgba(189,215,60,.35);
-      color:var(--accent);font-size:11px;padding:4px 8px;border-radius:999px;z-index:2;
+    .qc-big{
+      height:100%;
+      display:flex;align-items:center;justify-content:center;
+      font-size:44px;font-weight:1000;color:rgba(0,0,0,.78);
+      text-shadow:0 2px 0 rgba(255,255,255,.25);
     }
-    .letter{
-      height:76px;display:flex;align-items:center;justify-content:center;
-      font-size:54px;font-weight:1000;color:var(--text);
-      text-shadow:0 2px 0 rgba(0,0,0,.35);position:relative;z-index:2;
+    .qc-note{
+      position:absolute;bottom:10px;left:10px;
+      font-size:11px;color:rgba(0,0,0,.78);
+      background:rgba(255,255,255,.55);border:1px solid rgba(0,0,0,.12);
+      padding:3px 7px;border-radius:999px;
+      backdrop-filter: blur(8px);
     }
-    .lock-icon{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:rgba(189,215,60,.95);position:relative;z-index:2;}
 
+    /* Board */
     .board-stage{
       background: linear-gradient(180deg, rgba(0,0,0,.95) 0%, rgba(0,0,0,.88) 100%);
       padding-bottom:18px;border-top:1px solid rgba(255,255,255,.08);
@@ -158,14 +146,12 @@
       transition:background .12s ease;
     }
     .cell:hover{background:rgba(255,255,255,.07);}
-    .tile{
+    .paint{
       width:100%;height:100%;
-      display:flex;align-items:center;justify-content:center;
-      font-weight:1000;font-size:20px;background:linear-gradient(180deg,#222 0%, #0f0f0f 100%);
-      border:1px solid rgba(255,255,255,.10);color:var(--text);
+      border-radius:7px;
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,.12);
     }
-    .tile.new{border-color:rgba(189,215,60,.55);box-shadow:inset 0 0 0 2px rgba(189,215,60,.18);}
-
     .owner{
       position:absolute;bottom:2px;left:3px;
       font-size:9px;color:rgba(255,255,255,.85);
@@ -177,8 +163,26 @@
     .cell:hover .owner{opacity:1;}
     .owner.show{opacity:1;}
 
+    /* Color picker */
+    .palette{
+      display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+      padding:10px;border-radius:14px;background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.12);
+    }
+    .swatch{
+      width:34px;height:34px;border-radius:12px;cursor:pointer;
+      border:2px solid rgba(255,255,255,.12);
+      box-shadow:0 10px 22px rgba(0,0,0,.25);
+      position:relative;
+    }
+    .swatch.selected{outline:3px solid rgba(189,215,60,.45);box-shadow:0 0 0 6px rgba(189,215,60,.14);}
+    .swatch::after{
+      content:"";position:absolute;inset:0;border-radius:10px;
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,.15);
+    }
+
     .tabs{
-      position:sticky;bottom:0;z-index:10;padding:10px 12px;
+      position:sticky;bottom:56px;z-index:10;padding:10px 12px;
       background:rgba(0,0,0,.92);border-top:1px solid rgba(189,215,60,.25);
       display:flex;justify-content:center;gap:10px;backdrop-filter: blur(10px);
     }
@@ -189,6 +193,22 @@
     }
     .tab.active{background:rgba(189,215,60,.18);border-color:rgba(189,215,60,.55);color:var(--accent);box-shadow:0 12px 28px rgba(0,0,0,.35);}
 
+    footer{
+      position:sticky;bottom:0;z-index:11;
+      background:rgba(0,0,0,.92);backdrop-filter: blur(10px);
+      border-top:1px solid rgba(255,255,255,.10);
+      padding:10px 12px;
+      display:flex;justify-content:center;
+    }
+    footer a{
+      color:var(--stage);
+      font-weight:950;
+      text-decoration:none;
+      letter-spacing:.2px;
+    }
+    footer a:hover{text-decoration:underline;}
+
+    /* Modals */
     .modal-backdrop{
       position:fixed;inset:0;background:rgba(0,0,0,.65);
       display:none;align-items:center;justify-content:center;padding:14px;z-index:100;
@@ -202,7 +222,7 @@
     .modal .body{display:flex;flex-direction:column;gap:10px;}
     .field{display:flex;flex-direction:column;gap:6px;}
     .field label{font-size:12px;color:rgba(255,255,255,.86);}
-    input[type="text"], textarea{
+    input[type="text"]{
       width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.14);
       background:rgba(255,255,255,.06);color:var(--text);padding:11px 12px;font-size:14px;outline:none;
     }
@@ -219,7 +239,9 @@
 <body>
 <header>
   <div class="brand">
-    <img src="logo.png" alt="במקלטים שלנו"/>
+    <!-- אופציונלי: אם אין לך לוגו, מחק את ה-img ותשאיר title -->
+    <img src="logo.png" alt="לוגו"/>
+    <div class="title">ChainBoard Color</div>
   </div>
   <div class="hud">
     <div class="pill" title="המשתמש הנוכחי"><span class="dot"></span><span id="hudUser">לא מחובר</span></div>
@@ -230,71 +252,60 @@
 </header>
 
 <main>
-  <section id="lettersWorld" class="stage">
+  <!-- אזור הכרטיסיות -->
+  <section id="cardsWorld" class="stage">
     <div class="section">
       <div class="row">
         <div class="card" style="flex:1 1 420px;">
-          <h2>מחסן האותיות</h2>
-          <div class="muted">אותיות שפתרת נכנסות לכאן. בלוח המשחק תבחר אות ואז משבצת.</div>
-          <div style="height:10px"></div>
-          <div id="inventory" class="inventory"></div>
-          <div style="height:10px"></div>
-          <div class="board-actions">
-            <button class="btn" id="btnGoBoard">עבור ללוח המשחק</button>
-            <button class="btn secondary" id="btnClearSelection">נקה בחירה</button>
+          <h2>אזור הכרטיסיות</h2>
+          <div class="muted">
+            כל כרטיסייה היא חידה. כל משתמש יכול לפתור כל חידה (גם אם כבר פתרו לפניו).
+            על כל כרטיסייה תראה כמה משתמשים כבר פתרו אותה.
           </div>
         </div>
 
         <div class="card" style="flex:1 1 320px;">
-          <h2>איך זה עובד</h2>
+          <h2>איך משחקים</h2>
           <div class="muted">
-            • שלוש שורות של כרטיסיות אקראיות.<br/>
-            • כרטיסיה “נעולה” עד שמישהו פותר ופותח אותה.<br/>
-            • אחרי שנפתחה — כולם רואים שהיא פתוחה ומי פתח.<br/>
-            • הכל מסונכרן לשרת (Firebase).
+            • בחוח המשחק בוחרים צבע וצובעים משבצות בלוח 30×30.<br/>
+            • מקבלים נקודה על כל משבצת שנצבעת.<br/>
+            • שמות המשתמשים על משבצות מוצגים רק בהובר / בטאפ בטלפון.
           </div>
         </div>
       </div>
 
       <div style="height:12px"></div>
 
-      <div class="chain-wrap">
-        <div class="chain-top" aria-hidden="true"></div>
-        <div id="chainScroll" class="chain-scroll"></div>
+      <div class="cards-wrap">
+        <div class="cards-top" aria-hidden="true"></div>
+        <div id="cardsGrid" class="cards-grid"></div>
       </div>
     </div>
   </section>
 
+  <!-- חוח המשחק -->
   <section id="boardWorld" class="board-stage hidden">
     <div class="section">
       <div class="row">
         <div class="card board-wrap" style="flex:1 1 420px;">
-          <h2>לוח המשחק</h2>
-          <div class="muted">בחר אות מהמחסן → לחץ על משבצת ריקה להצבה. בסיום לחץ “בדוק מילה”.</div>
-          <div style="height:10px"></div>
-          <div id="boardStatus" class="msg warn hidden"></div>
-          <div class="board-actions">
-            <button class="btn" id="btnCheckWord">בדוק מילה</button>
-            <button class="btn secondary" id="btnUndoTurn">בטל תור (החזר אותיות)</button>
-            <button class="btn secondary" id="btnBackLetters">חזור לאזור האותיות</button>
-          </div>
+          <h2>חוח המשחק</h2>
+          <div class="muted">בחר צבע → לחץ על משבצת ריקה כדי לצבוע. כל צביעה = נקודה.</div>
 
           <div style="height:10px"></div>
+          <div id="boardStatus" class="msg warn hidden"></div>
+
           <div class="board-actions">
+            <button class="btn secondary" id="btnBackCards">חזור לאזור הכרטיסיות</button>
             <button class="btn secondary" id="btnZoomOut">– זום אאוט</button>
             <button class="btn secondary" id="btnZoomIn">+ זום אין</button>
           </div>
 
           <div style="height:10px"></div>
-          <div class="card" style="padding:10px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);box-shadow:none;">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
-              <div class="muted" style="font-weight:900;color:rgba(189,215,60,.95);">אות נבחרת:</div>
-              <div id="selectedLetterView" class="chip" style="width:48px;height:48px;font-size:22px;cursor:default;opacity:.9;">—</div>
-            </div>
-            <div style="height:8px"></div>
-            <div class="muted">מחסן (לחץ כדי לבחור אות):</div>
-            <div style="height:8px"></div>
-            <div id="inventoryBoard" class="inventory"></div>
+          <div class="muted" style="margin-bottom:8px;">פלטת צבעים:</div>
+          <div id="palette" class="palette"></div>
+
+          <div class="muted" style="margin-top:10px;">
+            טיפ: בטלפון אפשר ללחוץ על משבצת צבועה כדי להציג/להסתיר את שם הצובע.
           </div>
         </div>
 
@@ -307,17 +318,22 @@
 </main>
 
 <div class="tabs">
-  <div class="tab active" id="tabLetters">אזור האותיות</div>
-  <div class="tab" id="tabBoard">לוח המשחק</div>
+  <div class="tab active" id="tabCards">אזור הכרטיסיות</div>
+  <div class="tab" id="tabBoard">חוח המשחק</div>
 </div>
 
+<footer>
+  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">להכניס עניין לתוכן</a>
+</footer>
+
+<!-- מודאל כניסה -->
 <div class="modal-backdrop" id="loginModal">
   <div class="modal">
-    <header><h3>כניסה למשחק</h3></header>
+    <header><h3>כניסה</h3></header>
     <div class="body">
-      <div class="msg warn">הכל נשמר ומסונכרן בשרת. שם משתמש חייב להיות ייחודי.</div>
+      <div class="msg warn">שם משתמש חייב להיות ייחודי. הניקוד והצביעות נשמרים ומסונכרנים.</div>
       <div class="field">
-        <label>בחר שם משתמש (ייחודי)</label>
+        <label>בחר שם משתמש</label>
         <input type="text" id="loginName" placeholder="למשל: Amir" autocomplete="off"/>
         <div class="help">2–20 תווים. עברית/אנגלית/מספרים.</div>
       </div>
@@ -329,11 +345,14 @@
   </div>
 </div>
 
+<!-- מודאל חידה -->
 <div class="modal-backdrop" id="quizModal">
   <div class="modal">
     <header style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <h3>שאלה</h3>
-      <div class="tag" id="quizLetterTag">אות: —</div>
+      <h3>חידה</h3>
+      <div class="pill" style="margin:0" title="כמה פתרו">
+        👥 <span id="quizSolvedCount">0</span>
+      </div>
     </header>
     <div class="body">
       <div class="msg" id="quizQuestion">—</div>
@@ -351,14 +370,7 @@
   </div>
 </div>
 
-<div class="modal-backdrop" id="resultModal">
-  <div class="modal">
-    <header><h3>תוצאה</h3></header>
-    <div class="body"><div id="resultBody" class="msg">—</div></div>
-    <div class="footer"><button class="btn" id="btnResultOk">סבבה</button></div>
-  </div>
-</div>
-
+<!-- מודאל לוח נקודות -->
 <div class="modal-backdrop" id="scoresModal">
   <div class="modal">
     <header style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -373,9 +385,11 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
     getFirestore, doc, setDoc, getDoc, updateDoc,
-    onSnapshot, collection, getDocs, writeBatch, serverTimestamp
+    onSnapshot, collection, getDocs, writeBatch,
+    serverTimestamp, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
+  // ✅ firebaseConfig שלך (כמו שנתת)
   const firebaseConfig = {
     apiKey: "AIzaSyAXdEWNom2JklbeE5BcO1O3Ku5RyTy5dak",
     authDomain: "chainboard-game.firebaseapp.com",
@@ -389,34 +403,28 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const GAME_ID = "chainboard";
+  const GAME_ID = "chainboard_color_v1";
   const gameRef = doc(db, "games", GAME_ID);
+
   const usersCol = collection(db, "games", GAME_ID, "users");
-  const lettersCol = collection(db, "games", GAME_ID, "letters");
-  const boardCol = collection(db, "games", GAME_ID, "board");
+  const quizzesCol = collection(db, "games", GAME_ID, "quizzes");
+  const boardCol = collection(db, "games", GAME_ID, "board"); // doc id = "r,c"
 
-  const SESSION_KEY = "chainboard_current_user_v2";
-
-  const QUESTIONS = [
-    { q: "בירת ישראל?", a: ["ירושלים"] },
-    { q: "הכוכב הקרוב ביותר לכדור הארץ?", a: ["שמש"] },
-    { q: "מה ההפך מ'גדול'?", a: ["קטן"] },
-    { q: "מה שותים כשצמאים?", a: ["מים"] },
-    { q: "מה פותח מנעול?", a: ["מפתח"] },
-  ];
-
-  const LETTER_DISTRIBUTION = {
-    "א":18,"ב":4,"ג":6,"ד":6,"ה":16,"ו":20,"ז":2,"ח":4,"ט":2,"י":20,"כ":6,"ל":12,"מ":10,"נ":8,
-    "ס":4,"ע":4,"פ":4,"צ":4,"ק":2,"ר":8,"ש":10,"ת":10
-  };
-
+  const SESSION_KEY = "chainboard_color_current_user_v1";
   const SIZE = 30;
 
+  // Palette colors (תבחר מה שבא לך)
+  const PALETTE = [
+    "#f7941d", "#BDD73C", "#00C2FF", "#FF4D6D", "#8B5CF6",
+    "#22C55E", "#FBBF24", "#EF4444", "#14B8A6", "#FFFFFF"
+  ];
+
   const els = {
-    lettersWorld: document.getElementById("lettersWorld"),
+    cardsWorld: document.getElementById("cardsWorld"),
     boardWorld: document.getElementById("boardWorld"),
-    tabLetters: document.getElementById("tabLetters"),
+    tabCards: document.getElementById("tabCards"),
     tabBoard: document.getElementById("tabBoard"),
+
     hudUser: document.getElementById("hudUser"),
     hudScore: document.getElementById("hudScore"),
     btnScores: document.getElementById("btnScores"),
@@ -425,20 +433,14 @@
     scoresBody: document.getElementById("scoresBody"),
 
     btnLogout: document.getElementById("btnLogout"),
-    btnGoBoard: document.getElementById("btnGoBoard"),
-    btnBackLetters: document.getElementById("btnBackLetters"),
-    btnClearSelection: document.getElementById("btnClearSelection"),
-    btnUndoTurn: document.getElementById("btnUndoTurn"),
-    btnCheckWord: document.getElementById("btnCheckWord"),
+    btnBackCards: document.getElementById("btnBackCards"),
     btnZoomIn: document.getElementById("btnZoomIn"),
     btnZoomOut: document.getElementById("btnZoomOut"),
 
-    inventory: document.getElementById("inventory"),
-    inventoryBoard: document.getElementById("inventoryBoard"),
-    selectedLetterView: document.getElementById("selectedLetterView"),
-    chainScroll: document.getElementById("chainScroll"),
+    cardsGrid: document.getElementById("cardsGrid"),
     grid: document.getElementById("grid"),
     boardStatus: document.getElementById("boardStatus"),
+    palette: document.getElementById("palette"),
 
     loginModal: document.getElementById("loginModal"),
     loginName: document.getElementById("loginName"),
@@ -446,92 +448,37 @@
     loginMsg: document.getElementById("loginMsg"),
 
     quizModal: document.getElementById("quizModal"),
-    quizLetterTag: document.getElementById("quizLetterTag"),
     quizQuestion: document.getElementById("quizQuestion"),
     quizHint: document.getElementById("quizHint"),
     quizAnswer: document.getElementById("quizAnswer"),
     quizMsg: document.getElementById("quizMsg"),
+    quizSolvedCount: document.getElementById("quizSolvedCount"),
     btnQuizSubmit: document.getElementById("btnQuizSubmit"),
     btnQuizClose: document.getElementById("btnQuizClose"),
-
-    resultModal: document.getElementById("resultModal"),
-    resultBody: document.getElementById("resultBody"),
-    btnResultOk: document.getElementById("btnResultOk"),
   };
-
-  let currentUser = localStorage.getItem(SESSION_KEY) || "";
-  let usersCache = new Map();
-  let lettersCache = new Map();
-  let boardCache = new Map();
-
-  let selectedInventoryIndex = -1;
-  let pendingPlacement = [];
-  let openLetterCardId = null;
-  let boardScale = 1;
 
   const showModal = (el)=> el.style.display="flex";
   const hideModal = (el)=> el.style.display="none";
   const clearMsg = (el)=> { el.classList.add("hidden"); el.textContent=""; el.classList.remove("good","bad","warn"); };
   const setMsg = (el, text, kind)=> { el.classList.remove("hidden","good","bad","warn"); el.classList.add(kind); el.textContent=text; };
+  const flashBoard = (text, kind)=> setMsg(els.boardStatus, text, kind);
+
+  let currentUser = localStorage.getItem(SESSION_KEY) || "";
+  let usersCache = new Map();   // username -> {score}
+  let quizzesCache = new Map(); // qid -> {colorIndex, solvedCount}
+  let boardCache = new Map();   // "r,c" -> {color, owner}
+  let QUESTIONS = [];           // loaded from questions.json
+
+  let selectedColorIndex = 0;
+  let boardScale = 1;
+  let openQuizId = null;
 
   function setWorld(which){
-    const letters = which === "letters";
-    els.lettersWorld.classList.toggle("hidden", !letters);
-    els.boardWorld.classList.toggle("hidden", letters);
-    els.tabLetters.classList.toggle("active", letters);
-    els.tabBoard.classList.toggle("active", !letters);
-  }
-
-  function keyOf(r,c){ return `${r},${c}`; }
-  function inBounds(r,c){ return r>=0 && c>=0 && r<SIZE && c<SIZE; }
-  function neighbors4(r,c){
-    return [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(([rr,cc])=>inBounds(rr,cc));
-  }
-
-  function normWord(s){
-    return (s||"").trim().replace(/\s+/g,"").replace(/[־-]/g,"").replace(/[“”"']/g,"").replace(/[^\u0590-\u05FF]/g,"");
-  }
-
-  async function ensureGameSeeded(){
-    await setDoc(gameRef, { createdAt: serverTimestamp() }, { merge:true });
-
-    const snap = await getDocs(lettersCol);
-    if(!snap.empty) return;
-
-    const deck = [];
-    let id = 1;
-    for(const [letter,count] of Object.entries(LETTER_DISTRIBUTION)){
-      for(let i=0;i<count;i++){
-        deck.push({ id:`L${id++}`, letter, qIndex: Math.floor(Math.random()*QUESTIONS.length), claimedBy:null });
-      }
-    }
-    deck.sort(()=>Math.random()-0.5);
-
-    const batch = writeBatch(db);
-    for(const card of deck){
-      batch.set(doc(db, "games", GAME_ID, "letters", card.id), {
-        letter: card.letter,
-        qIndex: card.qIndex,
-        claimedBy: null,
-      });
-    }
-    await batch.commit();
-  }
-
-  async function tryLogin(name){
-    name = (name||"").trim();
-    if(!name) return {ok:false, msg:"צריך שם משתמש."};
-    if(!/^[\u0590-\u05FFa-zA-Z0-9 _.-]{2,20}$/.test(name)) return {ok:false, msg:"שם לא תקין. 2–20 תווים."};
-
-    const uref = doc(db, "games", GAME_ID, "users", name);
-    const udoc = await getDoc(uref);
-    if(udoc.exists()) return {ok:false, msg:"שם משתמש כבר תפוס."};
-
-    await setDoc(uref, { score:0, inventory:[], updatedAt: serverTimestamp() });
-    currentUser = name;
-    localStorage.setItem(SESSION_KEY, name);
-    hideModal(els.loginModal);
-    return {ok:true};
+    const cards = which === "cards";
+    els.cardsWorld.classList.toggle("hidden", !cards);
+    els.boardWorld.classList.toggle("hidden", cards);
+    els.tabCards.classList.toggle("active", cards);
+    els.tabBoard.classList.toggle("active", !cards);
   }
 
   function ensureLoggedIn(){
@@ -543,19 +490,87 @@
     return true;
   }
 
+  async function tryLogin(name){
+    name = (name||"").trim();
+    if(!name) return {ok:false, msg:"צריך שם משתמש."};
+    if(!/^[\u0590-\u05FFa-zA-Z0-9 _.-]{2,20}$/.test(name)) return {ok:false, msg:"שם לא תקין. 2–20 תווים."};
+
+    const uref = doc(db, "games", GAME_ID, "users", name);
+    const udoc = await getDoc(uref);
+    if(udoc.exists()) return {ok:false, msg:"שם משתמש כבר תפוס."};
+
+    await setDoc(uref, { score:0, updatedAt: serverTimestamp() });
+    currentUser = name;
+    localStorage.setItem(SESSION_KEY, name);
+    hideModal(els.loginModal);
+    return {ok:true};
+  }
+
+  function updateHud(){
+    els.hudUser.textContent = currentUser || "לא מחובר";
+    const me = usersCache.get(currentUser);
+    els.hudScore.textContent = String(me?.score ?? 0);
+  }
+
+  function keyOf(r,c){ return `${r},${c}`; }
+  function inBounds(r,c){ return r>=0 && c>=0 && r<SIZE && c<SIZE; }
+
+  function normAnswer(s){
+    // מנרמל תשובה: מוריד רווחים ומקפים ומנקה תווים לא-עבריים/אנגלית/ספרות
+    return (s||"")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g,"")
+      .replace(/[־-]/g,"")
+      .replace(/[“”"']/g,"")
+      .replace(/[^\u0590-\u05FFa-z0-9]/g,"");
+  }
+
+  async function loadQuestions(){
+    // ✅ שאלות מגיעות מקובץ נפרד
+    const res = await fetch("./questions.json", { cache: "no-store" });
+    if(!res.ok) throw new Error("לא הצלחתי לטעון questions.json");
+    const data = await res.json();
+    if(!Array.isArray(data)) throw new Error("questions.json חייב להיות מערך JSON");
+    QUESTIONS = data;
+  }
+
+  async function ensureGameSeeded(){
+    await setDoc(gameRef, { createdAt: serverTimestamp() }, { merge:true });
+
+    // Seed quizzes to match QUESTIONS length
+    const existing = await getDocs(quizzesCol);
+    const existingIds = new Set();
+    existing.forEach(d=> existingIds.add(d.id));
+
+    const batch = writeBatch(db);
+
+    for(let i=0;i<QUESTIONS.length;i++){
+      const qid = `Q${i+1}`;
+      if(existingIds.has(qid)) continue;
+      batch.set(doc(db,"games",GAME_ID,"quizzes",qid), {
+        index: i,
+        colorIndex: (i % PALETTE.length),
+        solvedCount: 0
+      });
+    }
+
+    // Optional: you can keep extra old quizzes in db; UI will show only current file count.
+    await batch.commit();
+  }
+
   function startListeners(){
     onSnapshot(usersCol, (qs)=>{
       usersCache.clear();
       qs.forEach(d=> usersCache.set(d.id, d.data()));
       updateHud();
-      renderInventory();
       renderScoresIfOpen();
     });
 
-    onSnapshot(lettersCol, (qs)=>{
-      lettersCache.clear();
-      qs.forEach(d=> lettersCache.set(d.id, d.data()));
-      renderChain();
+    onSnapshot(quizzesCol, (qs)=>{
+      quizzesCache.clear();
+      qs.forEach(d=> quizzesCache.set(d.id, d.data()));
+      renderCards();
     });
 
     onSnapshot(boardCol, (qs)=>{
@@ -565,196 +580,170 @@
     });
   }
 
-  function updateHud(){
-    els.hudUser.textContent = currentUser || "לא מחובר";
-    const me = usersCache.get(currentUser);
-    els.hudScore.textContent = String(me?.score ?? 0);
-  }
-
-  function myInventory(){
-    return (usersCache.get(currentUser)?.inventory ?? []).slice();
-  }
-  async function setMyInventory(inv){
-    await updateDoc(doc(db,"games",GAME_ID,"users",currentUser), { inventory: inv, updatedAt: serverTimestamp() });
-  }
-
-  function makeChip(ch, idx){
-    const chip = document.createElement("div");
-    chip.className = "chip";
-    chip.textContent = ch;
-    const small = document.createElement("small");
-    small.textContent = currentUser;
-    chip.appendChild(small);
-    chip.addEventListener("click", ()=>{
-      selectedInventoryIndex = idx;
-      highlightSelectedChip();
-      els.selectedLetterView.textContent = myInventory()[idx] ?? "—";
-    });
-    return chip;
-  }
-
-  function highlightSelectedChip(){
-    const mark=(container)=>{
-      [...container.querySelectorAll(".chip")].forEach((c,i)=> c.classList.toggle("selected", i===selectedInventoryIndex));
-    };
-    mark(els.inventory);
-    mark(els.inventoryBoard);
-  }
-
-  function renderInventory(){
-    els.inventory.innerHTML = "";
-    els.inventoryBoard.innerHTML = "";
-    els.selectedLetterView.textContent = "—";
-    selectedInventoryIndex = -1;
-
-    if(!currentUser) return;
-    const inv = myInventory();
-    if(inv.length===0){
-      const m=document.createElement("div"); m.className="muted"; m.textContent="אין עדיין אותיות. פתור כרטיסיות.";
-      els.inventory.appendChild(m);
-      els.inventoryBoard.appendChild(m.cloneNode(true));
-      return;
-    }
-    inv.forEach((ch,idx)=>{
-      els.inventory.appendChild(makeChip(ch,idx));
-      els.inventoryBoard.appendChild(makeChip(ch,idx));
+  function renderPalette(){
+    els.palette.innerHTML = "";
+    PALETTE.forEach((hex, idx)=>{
+      const s = document.createElement("div");
+      s.className = "swatch" + (idx===selectedColorIndex ? " selected" : "");
+      s.style.background = hex;
+      s.title = hex;
+      s.addEventListener("click", ()=>{
+        selectedColorIndex = idx;
+        renderPalette();
+        flashBoard("נבחר צבע: " + hex, "good");
+        setTimeout(()=> clearMsg(els.boardStatus), 650);
+      });
+      els.palette.appendChild(s);
     });
   }
 
-  function renderChain(){
-    els.chainScroll.innerHTML = "";
-    const cards = [...lettersCache.entries()].map(([id,data])=>({id,...data}));
+  function renderCards(){
+    els.cardsGrid.innerHTML = "";
+    // show exactly as many cards as questions file
+    for(let i=0;i<QUESTIONS.length;i++){
+      const qid = `Q${i+1}`;
+      const qMeta = quizzesCache.get(qid) || { colorIndex: i % PALETTE.length, solvedCount: 0 };
+      const color = PALETTE[qMeta.colorIndex] || PALETTE[0];
+      const solvedCount = Number(qMeta.solvedCount || 0);
 
-    for(const card of cards){
-      const div=document.createElement("div");
-      div.className="letter-card";
+      const card = document.createElement("div");
+      card.className = "quiz-card";
+      card.style.background = color;
 
-      const isOpened = !!card.claimedBy;
-      const isLocked = !isOpened;
-      if(isLocked) div.classList.add("locked");
+      const small = document.createElement("div");
+      small.className = "qc-small";
+      small.textContent = "פתרו כבר";
+      card.appendChild(small);
 
-      const tag=document.createElement("div");
-      tag.className="tag";
-      tag.textContent = isOpened ? ("פתוח • " + card.claimedBy) : "נעול • לחץ כדי לפתוח";
-      div.appendChild(tag);
+      const big = document.createElement("div");
+      big.className = "qc-big";
+      big.textContent = String(solvedCount);
+      card.appendChild(big);
 
-      const letter=document.createElement("div");
-      letter.className="letter";
-      letter.textContent=card.letter;
-      div.appendChild(letter);
+      const note = document.createElement("div");
+      note.className = "qc-note";
+      note.textContent = "חידה #" + (i+1);
+      card.appendChild(note);
 
-      const lock=document.createElement("div");
-      lock.className="lock-icon";
-      lock.textContent = isOpened ? "🔓 פתוח" : "🔒 נעול";
-      div.appendChild(lock);
-
-      div.addEventListener("click", ()=>{
+      card.addEventListener("click", ()=>{
         if(!ensureLoggedIn()) return;
-        if(isOpened) return;
-        openQuiz(card.id);
+        openQuiz(qid);
       });
 
-      els.chainScroll.appendChild(div);
+      els.cardsGrid.appendChild(card);
     }
   }
 
-  function openQuiz(cardId){
-    const card = lettersCache.get(cardId);
-    if(!card) return;
-    openLetterCardId = cardId;
-    const q = QUESTIONS[card.qIndex] || QUESTIONS[0];
+  function openQuiz(qid){
+    openQuizId = qid;
+    const meta = quizzesCache.get(qid);
+    const index = meta?.index ?? (parseInt(qid.slice(1),10)-1);
+    const q = QUESTIONS[index];
+    if(!q){
+      setMsg(els.quizMsg, "לא מצאתי חידה בקובץ questions.json עבור " + qid, "bad");
+      showModal(els.quizModal);
+      return;
+    }
 
-    els.quizLetterTag.textContent = "אות: " + card.letter;
-    els.quizQuestion.textContent = q.q;
-    const ansNorm = normWord((Array.isArray(q.a)?q.a[0]:q.a));
-    els.quizHint.textContent = "מספר אותיות (ללא רווחים/מקפים): " + (ansNorm.length || "—");
-    els.quizAnswer.value="";
     clearMsg(els.quizMsg);
+    els.quizQuestion.textContent = q.q ?? "—";
+    const firstAns = Array.isArray(q.a) ? q.a[0] : q.a;
+    const lenHint = q.len ?? normAnswer(firstAns).length ?? "—";
+    els.quizHint.textContent = "מספר תווים (ללא רווחים/מקפים): " + (lenHint || "—");
+    els.quizSolvedCount.textContent = String(meta?.solvedCount ?? 0);
+    els.quizAnswer.value = "";
     showModal(els.quizModal);
     setTimeout(()=>els.quizAnswer.focus(),50);
   }
 
   async function submitQuiz(){
-    if(!currentUser || !openLetterCardId) return;
-    const qCardRef = doc(db,"games",GAME_ID,"letters",openLetterCardId);
-    const snap = await getDoc(qCardRef);
-    const latest = snap.data();
-    if(!latest) return;
+    if(!openQuizId || !currentUser) return;
 
-    const q = QUESTIONS[latest.qIndex] || QUESTIONS[0];
-    const userAns = normWord(els.quizAnswer.value);
+    const qid = openQuizId;
+    const meta = quizzesCache.get(qid);
+    const index = meta?.index ?? (parseInt(qid.slice(1),10)-1);
+    const q = QUESTIONS[index];
+    if(!q){ setMsg(els.quizMsg, "חידה לא קיימת בקובץ.", "bad"); return; }
+
+    const userAns = normAnswer(els.quizAnswer.value);
     if(!userAns){ setMsg(els.quizMsg, "כתוב תשובה לפני בדיקה.", "warn"); return; }
 
-    const answers = (Array.isArray(q.a)?q.a:[q.a]).map(normWord);
+    const answers = (Array.isArray(q.a) ? q.a : [q.a]).map(normAnswer);
     const ok = answers.includes(userAns);
     if(!ok){ setMsg(els.quizMsg, "לא נכון. נסה שוב.", "bad"); return; }
 
-    if(latest.claimedBy){
-      setMsg(els.quizMsg, "מישהו כבר פתח את הכרטיסיה הזו.", "warn");
+    // ✅ כל משתמש יכול לפתור כל חידה, אבל "מספר המשתמשים שפתרו" נספר פעם אחת לכל משתמש.
+    const quizRef = doc(db,"games",GAME_ID,"quizzes",qid);
+    const solverRef = doc(db,"games",GAME_ID,"quizzes",qid,"solvers",currentUser);
+
+    try{
+      await runTransaction(db, async (tx)=>{
+        const solverSnap = await tx.get(solverRef);
+        if(solverSnap.exists()){
+          // כבר ספרנו אותך בחידה הזו
+          return;
+        }
+        const quizSnap = await tx.get(quizRef);
+        const solvedCount = Number(quizSnap.data()?.solvedCount || 0);
+        tx.set(solverRef, { at: serverTimestamp() });
+        tx.update(quizRef, { solvedCount: solvedCount + 1 });
+      });
+
+      setMsg(els.quizMsg, "נכון! עודכן שהמשתמש פתר את החידה.", "good");
+    }catch(e){
+      setMsg(els.quizMsg, "שגיאה בעדכון החידה. בדוק Rules/חיבור.", "bad");
       return;
     }
-
-    const inv = myInventory();
-    inv.push(latest.letter);
-
-    const batch = writeBatch(db);
-    batch.update(qCardRef, { claimedBy: currentUser });
-    batch.update(doc(db,"games",GAME_ID,"users",currentUser), { inventory: inv, updatedAt: serverTimestamp() });
-    await batch.commit();
-
-    setMsg(els.quizMsg, "נכון! פתחת את המנעול והאות נכנסה למחסן.", "good");
-    setTimeout(()=>{ hideModal(els.quizModal); openLetterCardId=null; }, 550);
-  }
-
-  function getBoardTile(r,c){
-    const k=keyOf(r,c);
-    const placed = pendingPlacement.find(p=>p.r===r && p.c===c);
-    if(placed) return { ch: placed.ch, owner: currentUser, pending:true };
-    return boardCache.get(k) || null;
   }
 
   function renderBoard(){
-    els.grid.innerHTML="";
+    els.grid.innerHTML = "";
     for(let r=0;r<SIZE;r++){
       for(let c=0;c<SIZE;c++){
-        const cell=document.createElement("div");
-        cell.className="cell";
-        const tile=getBoardTile(r,c);
-        if(tile){
-          const t=document.createElement("div");
-          t.className="tile" + (tile.pending ? " new" : "");
-          t.textContent=tile.ch;
-          cell.appendChild(t);
+        const cell = document.createElement("div");
+        cell.className = "cell";
 
-          const owner=document.createElement("div");
-          owner.className="owner";
-          owner.textContent=tile.owner || "";
+        const k = keyOf(r,c);
+        const tile = boardCache.get(k) || null;
+
+        if(tile){
+          const p = document.createElement("div");
+          p.className = "paint";
+          p.style.background = tile.color || "#ffffff";
+          cell.appendChild(p);
+
+          const owner = document.createElement("div");
+          owner.className = "owner";
+          owner.textContent = tile.owner || "";
           cell.appendChild(owner);
 
+          // טלפון: tap toggle owner
           cell.addEventListener("click", ()=>{
             const o = cell.querySelector(".owner");
-            if(!o) return;
-            o.classList.toggle("show");
+            if(o) o.classList.toggle("show");
           });
         }
 
         cell.addEventListener("click", async ()=>{
           if(!ensureLoggedIn()) return;
-          const inv = myInventory();
-          if(selectedInventoryIndex<0 || selectedInventoryIndex>=inv.length) return;
 
-          const k=keyOf(r,c);
+          // ✅ כדי למנוע "farm" נקודות: צובעים רק משבצת ריקה.
           if(boardCache.get(k)) return;
-          if(pendingPlacement.some(p=>p.r===r && p.c===c)) return;
 
-          const ch = inv[selectedInventoryIndex];
-          pendingPlacement.push({r,c,ch});
+          const color = PALETTE[selectedColorIndex] || PALETTE[0];
 
-          inv.splice(selectedInventoryIndex,1);
-          selectedInventoryIndex=-1;
-          await setMyInventory(inv);
-          renderInventory();
-          renderBoard();
+          const batch = writeBatch(db);
+          batch.set(doc(db,"games",GAME_ID,"board", k), { color, owner: currentUser });
+
+          const meRef = doc(db,"games",GAME_ID,"users", currentUser);
+          const me = usersCache.get(currentUser) || {score:0};
+          batch.update(meRef, { score: (me.score||0) + 1, updatedAt: serverTimestamp() });
+
+          try{
+            await batch.commit();
+          }catch(e){
+            flashBoard("שגיאה בצביעה/ניקוד. בדוק Rules.", "bad");
+          }
         });
 
         els.grid.appendChild(cell);
@@ -763,139 +752,16 @@
     els.grid.style.transform = `scale(${boardScale})`;
   }
 
-  function flashBoard(text,kind){ setMsg(els.boardStatus,text,kind); }
-  function clearBoard(){ clearMsg(els.boardStatus); }
-  function boardHasAnyTiles(){ return boardCache.size>0; }
-
-  const DICT = new Set(["שלום","חידה","מפתח","מנעול","שרשרת","רחוב","משחק","אות","מילה","לוח","מים","שמש","ירח","ישראל","עברית"].map(normWord));
-
-  function collectWords(mainDir){
-    const found = new Map();
-
-    function extractWordAt(r,c,dir){
-      if(!getBoardTile(r,c)) return null;
-      let dr=0,dc=0,odr=0,odc=0;
-      if(dir==="H"){ dr=0; dc=-1; odr=0; odc=+1; }
-      if(dir==="V"){ dr=+1; dc=0; odr=-1; odc=0; }
-
-      let sr=r, sc=c;
-      while(inBounds(sr+odr, sc+odc) && getBoardTile(sr+odr, sc+odc)){ sr+=odr; sc+=odc; }
-
-      let word="";
-      let rr=sr, cc=sc;
-      while(inBounds(rr,cc) && getBoardTile(rr,cc)){
-        word += getBoardTile(rr,cc).ch;
-        rr += dr; cc += dc;
-      }
-      return {startR:sr,startC:sc,word};
-    }
-
-    function addWordFromCell(r,c,dir){
-      const w = extractWordAt(r,c,dir);
-      if(!w || w.word.length<2) return;
-      const key = `${dir}:${w.startR},${w.startC}:${w.word}`;
-      found.set(key,{dir,...w});
-    }
-
-    const first = pendingPlacement[0];
-    const main = extractWordAt(first.r, first.c, mainDir);
-    if(main && main.word.length>=2){
-      found.set(`${mainDir}:${main.startR},${main.startC}:${main.word}`, {dir:mainDir,...main});
-    }
-    const cross = mainDir==="H" ? "V" : "H";
-    for(const p of pendingPlacement) addWordFromCell(p.r,p.c,cross);
-
-    return [...found.values()];
-  }
-
-  async function undoTurn(){
-    if(!ensureLoggedIn()) return;
-    if(pendingPlacement.length===0){ flashBoard("אין מה לבטל.", "warn"); return; }
-    const inv = myInventory();
-    for(const p of pendingPlacement) inv.push(p.ch);
-    pendingPlacement = [];
-    await setMyInventory(inv);
-    renderInventory();
-    renderBoard();
-    flashBoard("התור בוטל והאותיות חזרו למחסן.", "good");
-  }
-
-  async function checkTurn(){
-    if(!ensureLoggedIn()) return;
-    clearBoard();
-    if(pendingPlacement.length===0){ flashBoard("צריך להניח לפחות אות אחת.", "warn"); return; }
-
-    const rows = new Set(pendingPlacement.map(p=>p.r));
-    const cols = new Set(pendingPlacement.map(p=>p.c));
-    const sameRow = rows.size===1;
-    const sameCol = cols.size===1;
-    if(!(sameRow||sameCol)) return undoFail("כל האותיות חייבות להיות באותה שורה או עמודה.");
-
-    if(sameRow){
-      const r=pendingPlacement[0].r;
-      const cs=pendingPlacement.map(p=>p.c);
-      const min=Math.min(...cs), max=Math.max(...cs);
-      for(let c=min;c<=max;c++) if(!getBoardTile(r,c)) return undoFail("יש חור באמצע. חייב רצף.");
-    }else{
-      const c=pendingPlacement[0].c;
-      const rs=pendingPlacement.map(p=>p.r);
-      const min=Math.min(...rs), max=Math.max(...rs);
-      for(let r=min;r<=max;r++) if(!getBoardTile(r,c)) return undoFail("יש חור באמצע. חייב רצף.");
-    }
-
-    if(boardHasAnyTiles()){
-      let connected=false;
-      for(const p of pendingPlacement){
-        for(const [rr,cc] of neighbors4(p.r,p.c)){
-          if(boardCache.get(keyOf(rr,cc))) connected=true;
-        }
-      }
-      if(!connected) return undoFail("חייב להתחבר לאות קיימת (לא להצמיד בלי חיבור).");
-    }
-
-    const mainDir = sameRow ? "H" : "V";
-    const words = collectWords(mainDir);
-    if(words.length===0) return undoFail("לא נוצרה מילה באורך 2+.");
-
-    const invalid = words.filter(w=> !DICT.has(normWord(w.word)));
-    if(invalid.length) return undoFail("המילה לא קיימת במילון: " + invalid.map(x=>`“${x.word}”`).join(", "));
-
-    const placedPoints = pendingPlacement.length;
-    const bonus = Math.max(0, words.length-1) * 2;
-    const total = placedPoints + bonus;
-
-    const batch = writeBatch(db);
-    for(const p of pendingPlacement){
-      batch.set(doc(db,"games",GAME_ID,"board", keyOf(p.r,p.c)), { ch:p.ch, owner: currentUser });
-    }
-    const meRef = doc(db,"games",GAME_ID,"users", currentUser);
-    const me = usersCache.get(currentUser) || {score:0, inventory:[]};
-    batch.update(meRef, { score: (me.score||0) + total, updatedAt: serverTimestamp() });
-    await batch.commit();
-
-    pendingPlacement = [];
-
-    els.resultBody.innerHTML = `
-      <div><b style="color:var(--accent)">מילים שנוצרו:</b><br/>
-        ${words.map(w=>`• <b>${w.word}</b>`).join("<br/>")}
-      </div>
-      <div style="height:10px"></div>
-      <div>אותיות שהונחו: <b>${placedPoints}</b></div>
-      <div>בונוס: <b>${bonus}</b></div>
-      <div style="height:8px"></div>
-      <div class="msg good" style="margin:0">סה״כ לתור: <b>${total}</b> נק׳</div>
-    `;
-    showModal(els.resultModal);
-
-    function undoFail(msg){
-      return undoTurn().then(()=> flashBoard(msg, "bad"));
-    }
-  }
-
   function openScores(){
-    const entries = [...usersCache.entries()].map(([name,data])=>({name,score:data.score||0}))
+    const entries = [...usersCache.entries()]
+      .map(([name,data])=>({name,score:Number(data.score||0)}))
       .sort((a,b)=>b.score-a.score);
-    if(entries.length===0){ els.scoresBody.textContent="אין עדיין שחקנים."; showModal(els.scoresModal); return; }
+
+    if(entries.length===0){
+      els.scoresBody.textContent = "אין עדיין שחקנים.";
+      showModal(els.scoresModal);
+      return;
+    }
 
     els.scoresBody.innerHTML = entries.map((e,i)=>{
       const isMe = e.name===currentUser;
@@ -913,21 +779,12 @@
     if(els.scoresModal.style.display==="flex") openScores();
   }
 
-  els.tabLetters.addEventListener("click", ()=> setWorld("letters"));
+  // UI wiring
+  els.tabCards.addEventListener("click", ()=> setWorld("cards"));
   els.tabBoard.addEventListener("click", ()=> { if(ensureLoggedIn()) setWorld("board"); });
 
-  els.btnGoBoard.addEventListener("click", ()=> { if(ensureLoggedIn()) setWorld("board"); });
-  els.btnBackLetters.addEventListener("click", ()=> setWorld("letters"));
-  els.btnClearSelection.addEventListener("click", ()=>{
-    selectedInventoryIndex=-1;
-    highlightSelectedChip();
-    els.selectedLetterView.textContent="—";
-    flashBoard("בחירה נוקתה.", "good");
-    setTimeout(()=>clearBoard(),700);
-  });
+  els.btnBackCards.addEventListener("click", ()=> setWorld("cards"));
 
-  els.btnUndoTurn.addEventListener("click", undoTurn);
-  els.btnCheckWord.addEventListener("click", checkTurn);
   els.btnZoomIn.addEventListener("click", ()=>{ boardScale=Math.min(3, boardScale+0.1); renderBoard(); });
   els.btnZoomOut.addEventListener("click", ()=>{ boardScale=Math.max(0.3, boardScale-0.1); renderBoard(); });
 
@@ -939,39 +796,40 @@
     try{
       const res = await tryLogin(els.loginName.value);
       if(!res.ok) return setMsg(els.loginMsg, res.msg, "bad");
-      updateHud(); renderInventory(); renderChain(); renderBoard();
+      updateHud();
     }catch(e){
-      setMsg(els.loginMsg, "שגיאת שרת/הגדרה. בדוק Firebase config / Rules.", "bad");
+      setMsg(els.loginMsg, "שגיאה. בדוק Firebase config / Rules.", "bad");
     }
   });
   els.loginName.addEventListener("keydown", (e)=>{ if(e.key==="Enter") els.btnLogin.click(); });
 
   els.btnQuizSubmit.addEventListener("click", submitQuiz);
-  els.btnQuizClose.addEventListener("click", ()=>{ hideModal(els.quizModal); openLetterCardId=null; });
+  els.btnQuizClose.addEventListener("click", ()=>{ hideModal(els.quizModal); openQuizId=null; });
   els.quizAnswer.addEventListener("keydown",(e)=>{ if(e.key==="Enter") submitQuiz(); });
-
-  els.btnResultOk.addEventListener("click", ()=> hideModal(els.resultModal));
 
   els.btnLogout.addEventListener("click", ()=>{
     if(!confirm("לצאת מהמשתמש הנוכחי?")) return;
     currentUser="";
     localStorage.removeItem(SESSION_KEY);
-    pendingPlacement=[];
-    selectedInventoryIndex=-1;
     updateHud();
-    renderInventory();
     showModal(els.loginModal);
   });
 
-  for(const m of [els.quizModal, els.resultModal, els.scoresModal]){
+  for(const m of [els.quizModal, els.scoresModal, els.loginModal]){
     m.addEventListener("click",(e)=>{ if(e.target===m) hideModal(m); });
   }
 
+  // Boot
   (async function boot(){
+    renderPalette();
+    setWorld("cards");
+
+    await loadQuestions();
     await ensureGameSeeded();
     startListeners();
+
     if(!currentUser) showModal(els.loginModal);
-    setWorld("letters");
+    updateHud();
   })();
 </script>
 </body>
