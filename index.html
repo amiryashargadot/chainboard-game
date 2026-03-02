@@ -3,18 +3,14 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>ChainBoard Color</title>
+  <title>ChainBoard – Tiles</title>
 
   <style>
     :root{
       --bg:#000000;
-      --stage:#f7941d;        /* כתום חדש */
-      --accent:#e7e8e9;
+      --stage:#f7941d;      /* כתום */
+      --accent:#e7e8e9;     /* ✅ כל "ירוק" מוחלף לזה */
       --text:#F5F5F5;
-
-      --good:#4ade80;
-      --bad:#fb7185;
-      --warn:#fbbf24;
 
       --shadow: 0 14px 40px rgba(0,0,0,.45);
       --radius:18px;
@@ -27,7 +23,7 @@
       position:sticky;top:0;z-index:10;
       display:flex;align-items:center;justify-content:space-between;gap:10px;
       padding:10px 14px;background:rgba(0,0,0,.92);
-      border-bottom:1px solid rgba(189,215,60,.25);backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(231,232,233,.25);backdrop-filter: blur(10px);
     }
 
     .brand{display:flex;align-items:center;gap:12px;}
@@ -37,20 +33,20 @@
     .hud{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
     .pill{
       display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;
-      background:rgba(255,255,255,.04);border:1px solid rgba(189,215,60,.25);
-      color:rgba(189,215,60,.92);font-size:12px;user-select:none;
+      background:rgba(255,255,255,.04);border:1px solid rgba(231,232,233,.25);
+      color:rgba(231,232,233,.92);font-size:12px;user-select:none;
     }
-    .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px rgba(189,215,60,.18);}
+    .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px rgba(231,232,233,.16);}
 
     .btn{
       cursor:pointer;padding:9px 12px;border-radius:12px;
-      border:1px solid rgba(189,215,60,.35);background:rgba(189,215,60,.10);
+      border:1px solid rgba(231,232,233,.35);background:rgba(231,232,233,.10);
       color:var(--accent);font-weight:800;font-size:13px;
       box-shadow:0 10px 22px rgba(0,0,0,.28);
       transition:transform .08s ease, background .15s ease, border-color .15s ease;
       user-select:none;
     }
-    .btn:hover{transform:translateY(-1px);background:rgba(189,215,60,.14);border-color:rgba(189,215,60,.55);}
+    .btn:hover{transform:translateY(-1px);background:rgba(231,232,233,.14);border-color:rgba(231,232,233,.55);}
     .btn:active{transform:translateY(0px) scale(.99);}
     .btn.secondary{background:rgba(255,255,255,.04);color:var(--text);border-color:rgba(255,255,255,.14);font-weight:650;}
     .btn.danger{border-color:rgba(251,113,133,.5);background:rgba(251,113,133,.12);color:#ffd6dd;}
@@ -68,6 +64,7 @@
         radial-gradient(700px 260px at 20% 30%, rgba(0,0,0,.55), transparent 60%);
       pointer-events:none;
     }
+
     .section{padding:14px 14px 10px;position:relative;z-index:1;}
     .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;}
     .card{
@@ -117,15 +114,28 @@
       font-size:44px;font-weight:1000;color:rgba(0,0,0,.78);
       text-shadow:0 2px 0 rgba(255,255,255,.25);
     }
-    .qc-note{
-      position:absolute;bottom:10px;left:10px;
-      font-size:11px;color:rgba(0,0,0,.78);
-      background:rgba(255,255,255,.55);border:1px solid rgba(0,0,0,.12);
-      padding:3px 7px;border-radius:999px;
-      backdrop-filter: blur(8px);
+
+    /* Inventory (diamonds) */
+    .inv-wrap{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+    .diamond{
+      width:46px;height:46px;
+      transform:rotate(45deg);
+      border-radius:10px;
+      border:2px solid rgba(255,255,255,.14);
+      box-shadow:0 10px 22px rgba(0,0,0,.25);
+      cursor:pointer;
+      position:relative;
+    }
+    .diamond.selected{
+      outline:3px solid rgba(231,232,233,.55);
+      box-shadow:0 0 0 7px rgba(231,232,233,.16), 0 10px 22px rgba(0,0,0,.25);
+    }
+    .diamond::after{
+      content:"";position:absolute;inset:0;border-radius:8px;
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,.14);
     }
 
-    /* Board */
+    /* Board (200 diamonds) */
     .board-stage{
       background: linear-gradient(180deg, rgba(0,0,0,.95) 0%, rgba(0,0,0,.88) 100%);
       padding-bottom:18px;border-top:1px solid rgba(255,255,255,.08);
@@ -133,65 +143,70 @@
     .board-wrap{display:flex;flex-direction:column;gap:12px;}
     .board-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
     .grid-container{position:relative;overflow:auto;max-width:100%;}
-    .grid{
-      width:min(92vw, 900px);aspect-ratio:1/1;
-      display:grid;grid-template-columns:repeat(30,1fr);grid-template-rows:repeat(30,1fr);
-      gap:2px;padding:8px;border-radius:18px;background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);box-shadow:var(--shadow);
-      direction:rtl;user-select:none;touch-action:manipulation;transform-origin:center center;
-    }
-    .cell{
-      background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);border-radius:8px;
-      display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;overflow:hidden;
-      transition:background .12s ease;
-    }
-    .cell:hover{background:rgba(255,255,255,.07);}
-    .paint{
-      width:100%;height:100%;
-      border-radius:7px;
-      border:1px solid rgba(255,255,255,.10);
-      box-shadow: inset 0 0 0 2px rgba(0,0,0,.12);
-    }
-    .owner{
-      position:absolute;bottom:2px;left:3px;
-      font-size:9px;color:rgba(255,255,255,.85);
-      background:rgba(0,0,0,.65);border:1px solid rgba(255,255,255,.10);
-      padding:1px 4px;border-radius:999px;pointer-events:none;
-      max-width:92%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-      opacity:0;transition:opacity .15s ease;
-    }
-    .cell:hover .owner{opacity:1;}
-    .owner.show{opacity:1;}
 
-    /* Color picker */
-    .palette{
-      display:flex;gap:8px;flex-wrap:wrap;align-items:center;
-      padding:10px;border-radius:14px;background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.12);
+    /* diamond grid: rotate container, counter-rotate content */
+    .diamond-grid{
+      display:grid;
+      grid-template-columns:repeat(20, 44px);
+      grid-template-rows:repeat(10, 44px);
+      gap:8px;
+      padding:12px;
+      border-radius:18px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:var(--shadow);
+      transform-origin:center center;
+      transform: rotate(45deg) scale(1);
     }
-    .swatch{
-      width:34px;height:34px;border-radius:12px;cursor:pointer;
-      border:2px solid rgba(255,255,255,.12);
-      box-shadow:0 10px 22px rgba(0,0,0,.25);
+
+    .dcell{
+      width:44px;height:44px;
+      border-radius:12px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.08);
+      cursor:pointer;
       position:relative;
+      overflow:hidden;
     }
-    .swatch.selected{outline:3px solid rgba(189,215,60,.45);box-shadow:0 0 0 6px rgba(189,215,60,.14);}
-    .swatch::after{
-      content:"";position:absolute;inset:0;border-radius:10px;
-      box-shadow: inset 0 0 0 2px rgba(0,0,0,.15);
+    .dcell:hover{background:rgba(255,255,255,.07);}
+
+    .dcell .fill{
+      position:absolute;inset:0;
+      transform: rotate(-45deg) scale(1.15); /* keeps the color area nice */
+      transform-origin:center center;
+      border-radius:12px;
+      opacity:1;
     }
+
+    .dcell .name{
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:center;
+      transform: rotate(-45deg);
+      font-size:10px;font-weight:900;
+      color:rgba(255,255,255,.92);
+      text-shadow: 0 2px 8px rgba(0,0,0,.65);
+      padding:4px;
+      text-align:center;
+      pointer-events:none;
+    }
+
+    .msg{padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:13px;line-height:1.35;}
+    .msg.good{border-color: rgba(74,222,128,.35); background: rgba(74,222,128,.12);}
+    .msg.bad{border-color: rgba(251,113,133,.45); background: rgba(251,113,133,.12);}
+    .msg.warn{border-color: rgba(251,191,36,.45); background: rgba(251,191,36,.12); color:#fff7d1;}
+    .hidden{display:none !important;}
 
     .tabs{
       position:sticky;bottom:56px;z-index:10;padding:10px 12px;
-      background:rgba(0,0,0,.92);border-top:1px solid rgba(189,215,60,.25);
+      background:rgba(0,0,0,.92);border-top:1px solid rgba(231,232,233,.25);
       display:flex;justify-content:center;gap:10px;backdrop-filter: blur(10px);
     }
     .tab{
       flex:1;max-width:260px;text-align:center;padding:12px 12px;border-radius:16px;cursor:pointer;
-      user-select:none;border:1px solid rgba(189,215,60,.25);background:rgba(255,255,255,.04);
-      color:rgba(189,215,60,.90);font-weight:950;letter-spacing:.2px;
+      user-select:none;border:1px solid rgba(231,232,233,.25);background:rgba(255,255,255,.04);
+      color:rgba(231,232,233,.92);font-weight:950;letter-spacing:.2px;
     }
-    .tab.active{background:rgba(189,215,60,.18);border-color:rgba(189,215,60,.55);color:var(--accent);box-shadow:0 12px 28px rgba(0,0,0,.35);}
+    .tab.active{background:rgba(231,232,233,.18);border-color:rgba(231,232,233,.55);color:var(--accent);box-shadow:0 12px 28px rgba(0,0,0,.35);}
 
     footer{
       position:sticky;bottom:0;z-index:11;
@@ -228,11 +243,6 @@
     }
     .help{font-size:12px;color:rgba(255,255,255,.70);line-height:1.35;}
     .modal .footer{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding-top:12px;}
-    .msg{padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:13px;line-height:1.35;}
-    .msg.good{border-color: rgba(74,222,128,.35); background: rgba(74,222,128,.12);}
-    .msg.bad{border-color: rgba(251,113,133,.45); background: rgba(251,113,133,.12);}
-    .msg.warn{border-color: rgba(251,191,36,.45); background: rgba(251,191,36,.12); color:#fff7d1;}
-    .hidden{display:none !important;}
   </style>
 </head>
 
@@ -240,37 +250,37 @@
 <header>
   <div class="brand">
     <img src="logo.png" alt="לוגו"/>
-    <div class="title">ChainBoard Color</div>
+    <div class="title">ChainBoard</div>
   </div>
+
   <div class="hud">
     <div class="pill" title="המשתמש הנוכחי"><span class="dot"></span><span id="hudUser">לא מחובר</span></div>
-    <div class="pill" title="הנקודות שלך">⭐ <span id="hudScore">0</span></div>
+    <div class="pill" title="אריחים שהנחת">🧩 <span id="hudTiles">0</span></div>
+    <div class="pill" title="אחוז שטח מתוך 200">📐 <span id="hudPct">0.0</span>%</div>
     <button class="btn secondary" id="btnScores">לוח נקודות</button>
     <button class="btn danger" id="btnLogout">יציאה</button>
   </div>
 </header>
 
 <main>
-  <section id="cardsWorld" class="stage">
+  <!-- אריחים -->
+  <section id="tilesWorld" class="stage">
     <div class="section">
       <div class="row">
         <div class="card" style="flex:1 1 420px;">
-          <h2>אזור הכרטיסיות</h2>
+          <h2>אריחים</h2>
           <div class="muted">
-            כל כרטיסייה היא חידה. כל משתמש יכול לפתור כל חידה (גם אם כבר פתרו לפניו).
-            על כל כרטיסייה תראה כמה משתמשים כבר פתרו אותה.
-          </div>
-          <div class="muted" style="margin-top:8px;">
-            טיפ: עדכון קובץ החידות לא “מאפס” פתרונות, כי לכל חידה יש <b>ID קבוע</b>.
+            פותרים חידה → מקבלים אריח למחסן. כל חידה נותנת אריח פעם אחת לכל משתמש.
           </div>
         </div>
 
         <div class="card" style="flex:1 1 320px;">
-          <h2>איך משחקים</h2>
+          <h2>כללי הצבה במפה</h2>
           <div class="muted">
-            • בחוח המשחק בוחרים צבע וצובעים משבצות בלוח 30×30.<br/>
-            • מקבלים נקודה על כל משבצת שנצבעת (רק בצביעה הראשונה שלה).<br/>
-            • שמות המשתמשים על משבצות מוצגים רק בהובר / בטאפ בטלפון.
+            • האריח הראשון שלך חייב להיות מבודד (לא נוגע בשום אריח).<br/>
+            • מכאן והלאה — מותר להציב רק אם האריח נוגע באריחים שלך (צמוד צד).<br/>
+            • צבע השטח שלך הוא ממוצע משוקלל של כל האריחים שהנחת.<br/>
+            • הלוח הוא 200 אריחים (כל אריח = 0.5%).
           </div>
         </div>
       </div>
@@ -284,33 +294,33 @@
     </div>
   </section>
 
-  <section id="boardWorld" class="board-stage hidden">
+  <!-- מפה -->
+  <section id="mapWorld" class="board-stage hidden">
     <div class="section">
       <div class="row">
         <div class="card board-wrap" style="flex:1 1 420px;">
-          <h2>חוח המשחק</h2>
-          <div class="muted">בחר צבע → לחץ על משבצת ריקה כדי לצבוע. כל צביעה = נקודה.</div>
+          <h2>מפה</h2>
+          <div class="muted">בחר אריח מהמחסן → לחץ על משבצת במפה כדי להציב.</div>
 
-          <div style="height:10px"></div>
-          <div id="boardStatus" class="msg warn hidden"></div>
+          <div id="mapMsg" class="msg warn hidden"></div>
 
           <div class="board-actions">
-            <button class="btn secondary" id="btnBackCards">חזור לאזור הכרטיסיות</button>
+            <button class="btn secondary" id="btnBackTiles">חזור לאריחים</button>
             <button class="btn secondary" id="btnZoomOut">– זום אאוט</button>
             <button class="btn secondary" id="btnZoomIn">+ זום אין</button>
           </div>
 
           <div style="height:10px"></div>
-          <div class="muted" style="margin-bottom:8px;">פלטת צבעים:</div>
-          <div id="palette" class="palette"></div>
+          <div class="muted" style="margin-bottom:6px;">מחסן האריחים שלך:</div>
+          <div id="inventory" class="inv-wrap"></div>
 
           <div class="muted" style="margin-top:10px;">
-            טיפ: בטלפון אפשר ללחוץ על משבצת צבועה כדי להציג/להסתיר את שם הצובע.
+            טיפ: אם אין לך אריחים במחסן — חזור ל״אריחים״ ופתור חידה.
           </div>
         </div>
 
         <div class="grid-container" style="flex:1 1 320px;">
-          <div id="grid" class="grid"></div>
+          <div id="diamondGrid" class="diamond-grid"></div>
         </div>
       </div>
     </div>
@@ -318,19 +328,20 @@
 </main>
 
 <div class="tabs">
-  <div class="tab active" id="tabCards">אזור הכרטיסיות</div>
-  <div class="tab" id="tabBoard">חוח המשחק</div>
+  <div class="tab active" id="tabTiles">אריחים</div>
+  <div class="tab" id="tabMap">מפה</div>
 </div>
 
 <footer>
   <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">להכניס עניין לתוכן</a>
 </footer>
 
+<!-- מודאל כניסה -->
 <div class="modal-backdrop" id="loginModal">
   <div class="modal">
     <header><h3>כניסה</h3></header>
     <div class="body">
-      <div class="msg warn">שם משתמש חייב להיות ייחודי. הניקוד והצביעות נשמרים ומסונכרנים.</div>
+      <div class="msg warn">שם משתמש חייב להיות ייחודי.</div>
       <div class="field">
         <label>בחר שם משתמש</label>
         <input type="text" id="loginName" placeholder="למשל: Amir" autocomplete="off"/>
@@ -344,6 +355,7 @@
   </div>
 </div>
 
+<!-- מודאל חידה -->
 <div class="modal-backdrop" id="quizModal">
   <div class="modal">
     <header style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -368,6 +380,7 @@
   </div>
 </div>
 
+<!-- מודאל לוח נקודות -->
 <div class="modal-backdrop" id="scoresModal">
   <div class="modal">
     <header style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
@@ -381,12 +394,11 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
-    getFirestore, doc, setDoc, getDoc, updateDoc,
-    onSnapshot, collection, getDocs, writeBatch,
-    serverTimestamp, runTransaction
+    getFirestore, doc, setDoc, getDoc,
+    onSnapshot, collection, getDocs,
+    writeBatch, serverTimestamp, runTransaction
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
-  // ✅ firebaseConfig שלך
   const firebaseConfig = {
     apiKey: "AIzaSyAXdEWNom2JklbeE5BcO1O3Ku5RyTy5dak",
     authDomain: "chainboard-game.firebaseapp.com",
@@ -400,44 +412,61 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  const GAME_ID = "chainboard_color_v1";
-  const gameRef = doc(db, "games", GAME_ID);
+  // ====== GAME CONFIG ======
+  const GAME_ID = "chainboard_territory_v1";
+  // 200 tiles => 20x10 (each tile is 0.5%)
+  const W = 20;
+  const H = 10;
+  const TOTAL = W * H; // 200
 
-  const usersCol = collection(db, "games", GAME_ID, "users");
-  const quizzesCol = collection(db, "games", GAME_ID, "quizzes");
-  const boardCol = collection(db, "games", GAME_ID, "board"); // doc id = "r,c"
-
-  const SESSION_KEY = "chainboard_color_current_user_v1";
-  const SIZE = 30;
-
-  // Palette colors
+  // Palette for quiz tiles (colors stored in inventory)
   const PALETTE = [
-    "#f7941d", "#BDD73C", "#00C2FF", "#FF4D6D", "#8B5CF6",
+    "#f7941d", "#e7e8e9", "#00C2FF", "#FF4D6D", "#8B5CF6",
     "#22C55E", "#FBBF24", "#EF4444", "#14B8A6", "#FFFFFF"
   ];
 
+  // ====== FIRESTORE PATHS ======
+  const gameRef = doc(db, "games", GAME_ID);
+  const usersCol = collection(db, "games", GAME_ID, "users");
+  const quizzesCol = collection(db, "games", GAME_ID, "quizzes");
+  const boardCol = collection(db, "games", GAME_ID, "board"); // cell docs: "x_y"
+
+  // user doc schema:
+  // { tilesCount, rSum, gSum, bSum, inventory: [hex,...], updatedAt }
+  //
+  // board cell doc:
+  // { owner, baseColor, placedAt }
+  //
+  // quiz doc:
+  // { colorIndex, solvedCount }
+  // solvers subcol:
+  // quizzes/{qid}/solvers/{username}: { at }
+
+  // ====== UI ======
   const els = {
-    cardsWorld: document.getElementById("cardsWorld"),
-    boardWorld: document.getElementById("boardWorld"),
-    tabCards: document.getElementById("tabCards"),
-    tabBoard: document.getElementById("tabBoard"),
+    tilesWorld: document.getElementById("tilesWorld"),
+    mapWorld: document.getElementById("mapWorld"),
+    tabTiles: document.getElementById("tabTiles"),
+    tabMap: document.getElementById("tabMap"),
 
     hudUser: document.getElementById("hudUser"),
-    hudScore: document.getElementById("hudScore"),
+    hudTiles: document.getElementById("hudTiles"),
+    hudPct: document.getElementById("hudPct"),
+
     btnScores: document.getElementById("btnScores"),
     btnScoresClose: document.getElementById("btnScoresClose"),
     scoresModal: document.getElementById("scoresModal"),
     scoresBody: document.getElementById("scoresBody"),
 
     btnLogout: document.getElementById("btnLogout"),
-    btnBackCards: document.getElementById("btnBackCards"),
+    btnBackTiles: document.getElementById("btnBackTiles"),
     btnZoomIn: document.getElementById("btnZoomIn"),
     btnZoomOut: document.getElementById("btnZoomOut"),
 
     cardsGrid: document.getElementById("cardsGrid"),
-    grid: document.getElementById("grid"),
-    boardStatus: document.getElementById("boardStatus"),
-    palette: document.getElementById("palette"),
+    inventory: document.getElementById("inventory"),
+    diamondGrid: document.getElementById("diamondGrid"),
+    mapMsg: document.getElementById("mapMsg"),
 
     loginModal: document.getElementById("loginModal"),
     loginName: document.getElementById("loginName"),
@@ -458,24 +487,32 @@
   const hideModal = (el)=> el.style.display="none";
   const clearMsg = (el)=> { el.classList.add("hidden"); el.textContent=""; el.classList.remove("good","bad","warn"); };
   const setMsg = (el, text, kind)=> { el.classList.remove("hidden","good","bad","warn"); el.classList.add(kind); el.textContent=text; };
-  const flashBoard = (text, kind)=> setMsg(els.boardStatus, text, kind);
+  const flashMap = (text, kind)=> {
+    setMsg(els.mapMsg, text, kind);
+    setTimeout(()=>clearMsg(els.mapMsg), 1400);
+  };
 
+  // ====== STATE ======
+  const SESSION_KEY = "chainboard_territory_user_v1";
   let currentUser = localStorage.getItem(SESSION_KEY) || "";
-  let usersCache = new Map();   // username -> {score}
-  let quizzesCache = new Map(); // qid -> {colorIndex, solvedCount}
-  let boardCache = new Map();   // "r,c" -> {color, owner}
-  let QUESTIONS = [];           // loaded from questions.json
+  let QUESTIONS = [];
 
-  let selectedColorIndex = 0;
-  let boardScale = 1;
+  let usersCache = new Map();   // username -> userdoc
+  let quizzesCache = new Map(); // qid -> quizdoc
+  let boardCache = new Map();   // "x_y" -> celldoc
+
+  let selectedInvIndex = null;  // inventory index
+  let gridScale = 1;
+
   let openQuizId = null;
 
+  // ====== HELPERS ======
   function setWorld(which){
-    const cards = which === "cards";
-    els.cardsWorld.classList.toggle("hidden", !cards);
-    els.boardWorld.classList.toggle("hidden", cards);
-    els.tabCards.classList.toggle("active", cards);
-    els.tabBoard.classList.toggle("active", !cards);
+    const tiles = which === "tiles";
+    els.tilesWorld.classList.toggle("hidden", !tiles);
+    els.mapWorld.classList.toggle("hidden", tiles);
+    els.tabTiles.classList.toggle("active", tiles);
+    els.tabMap.classList.toggle("active", !tiles);
   }
 
   function ensureLoggedIn(){
@@ -493,10 +530,16 @@
     if(!/^[\u0590-\u05FFa-zA-Z0-9 _.-]{2,20}$/.test(name)) return {ok:false, msg:"שם לא תקין. 2–20 תווים."};
 
     const uref = doc(db, "games", GAME_ID, "users", name);
-    const udoc = await getDoc(uref);
-    if(udoc.exists()) return {ok:false, msg:"שם משתמש כבר תפוס."};
+    const snap = await getDoc(uref);
+    if(snap.exists()) return {ok:false, msg:"שם משתמש כבר תפוס."};
 
-    await setDoc(uref, { score:0, updatedAt: serverTimestamp() });
+    await setDoc(uref, {
+      tilesCount: 0,
+      rSum: 0, gSum: 0, bSum: 0,
+      inventory: [],
+      updatedAt: serverTimestamp(),
+    });
+
     currentUser = name;
     localStorage.setItem(SESSION_KEY, name);
     hideModal(els.loginModal);
@@ -506,10 +549,37 @@
   function updateHud(){
     els.hudUser.textContent = currentUser || "לא מחובר";
     const me = usersCache.get(currentUser);
-    els.hudScore.textContent = String(me?.score ?? 0);
+    const tiles = Number(me?.tilesCount || 0);
+    const pct = (tiles / TOTAL) * 100;
+    els.hudTiles.textContent = String(tiles);
+    els.hudPct.textContent = pct.toFixed(1);
   }
 
-  function keyOf(r,c){ return `${r},${c}`; }
+  function cellId(x,y){ return `${x}_${y}`; }
+  function inBounds(x,y){ return x>=0 && y>=0 && x<W && y<H; }
+  function neighbors4(x,y){
+    return [[x+1,y],[x-1,y],[x,y+1],[x,y-1]].filter(([nx,ny])=>inBounds(nx,ny));
+  }
+
+  function hexToRgb(hex){
+    const h = (hex||"").replace("#","");
+    const r = parseInt(h.slice(0,2),16);
+    const g = parseInt(h.slice(2,4),16);
+    const b = parseInt(h.slice(4,6),16);
+    return {r,g,b};
+  }
+  function rgbToHex(r,g,b){
+    const to = (v)=> Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2,"0");
+    return "#" + to(r) + to(g) + to(b);
+  }
+  function blendedColorForUser(userDoc){
+    const n = Number(userDoc?.tilesCount || 0);
+    if(n<=0) return "#222222";
+    const r = Number(userDoc?.rSum || 0) / n;
+    const g = Number(userDoc?.gSum || 0) / n;
+    const b = Number(userDoc?.bSum || 0) / n;
+    return rgbToHex(r,g,b);
+  }
 
   function normAnswer(s){
     return (s||"")
@@ -521,14 +591,14 @@
       .replace(/[^\u0590-\u05FFa-z0-9]/g,"");
   }
 
+  // ====== QUESTIONS ======
   async function loadQuestions(){
     const res = await fetch("./questions.json", { cache: "no-store" });
     if(!res.ok) throw new Error("לא הצלחתי לטעון questions.json");
     const data = await res.json();
     if(!Array.isArray(data)) throw new Error("questions.json חייב להיות מערך JSON");
-    // בדיקה בסיסית: id חובה
     for(const q of data){
-      if(!q?.id) throw new Error("כל חידה חייבת לכלול שדה id (קבוע).");
+      if(!q?.id) throw new Error("כל חידה חייבת לכלול שדה id קבוע.");
     }
     QUESTIONS = data;
   }
@@ -536,17 +606,14 @@
   async function ensureGameSeeded(){
     await setDoc(gameRef, { createdAt: serverTimestamp() }, { merge:true });
 
-    // Seed quizzes to match QUESTIONS length (by stable id)
     const existing = await getDocs(quizzesCol);
     const existingIds = new Set();
     existing.forEach(d=> existingIds.add(d.id));
 
     const batch = writeBatch(db);
-
     for (let i = 0; i < QUESTIONS.length; i++) {
       const q = QUESTIONS[i];
       const qid = String(q.id);
-
       if(existingIds.has(qid)) continue;
 
       batch.set(doc(db,"games",GAME_ID,"quizzes",qid), {
@@ -554,48 +621,10 @@
         solvedCount: 0
       });
     }
-
     await batch.commit();
   }
 
-  function startListeners(){
-    onSnapshot(usersCol, (qs)=>{
-      usersCache.clear();
-      qs.forEach(d=> usersCache.set(d.id, d.data()));
-      updateHud();
-      renderScoresIfOpen();
-    });
-
-    onSnapshot(quizzesCol, (qs)=>{
-      quizzesCache.clear();
-      qs.forEach(d=> quizzesCache.set(d.id, d.data()));
-      renderCards();
-    });
-
-    onSnapshot(boardCol, (qs)=>{
-      boardCache.clear();
-      qs.forEach(d=> boardCache.set(d.id, d.data()));
-      renderBoard();
-    });
-  }
-
-  function renderPalette(){
-    els.palette.innerHTML = "";
-    PALETTE.forEach((hex, idx)=>{
-      const s = document.createElement("div");
-      s.className = "swatch" + (idx===selectedColorIndex ? " selected" : "");
-      s.style.background = hex;
-      s.title = hex;
-      s.addEventListener("click", ()=>{
-        selectedColorIndex = idx;
-        renderPalette();
-        flashBoard("נבחר צבע: " + hex, "good");
-        setTimeout(()=> clearMsg(els.boardStatus), 650);
-      });
-      els.palette.appendChild(s);
-    });
-  }
-
+  // ====== RENDER ======
   function renderCards(){
     els.cardsGrid.innerHTML = "";
 
@@ -621,11 +650,6 @@
       big.textContent = String(solvedCount);
       card.appendChild(big);
 
-      const note = document.createElement("div");
-      note.className = "qc-note";
-      note.textContent = "חידה";
-      card.appendChild(note);
-
       card.addEventListener("click", ()=>{
         if(!ensureLoggedIn()) return;
         openQuiz(qid);
@@ -635,19 +659,83 @@
     }
   }
 
+  function renderInventory(){
+    const me = usersCache.get(currentUser);
+    const inv = Array.isArray(me?.inventory) ? me.inventory : [];
+
+    els.inventory.innerHTML = "";
+    selectedInvIndex = (selectedInvIndex != null && selectedInvIndex < inv.length) ? selectedInvIndex : null;
+
+    if(inv.length === 0){
+      const d = document.createElement("div");
+      d.className = "muted";
+      d.textContent = "אין לך אריחים כרגע.";
+      els.inventory.appendChild(d);
+      return;
+    }
+
+    inv.forEach((hex, idx)=>{
+      const t = document.createElement("div");
+      t.className = "diamond" + (idx===selectedInvIndex ? " selected" : "");
+      t.style.background = hex;
+      t.title = hex;
+      t.addEventListener("click", ()=>{
+        selectedInvIndex = idx;
+        renderInventory();
+      });
+      els.inventory.appendChild(t);
+    });
+  }
+
+  function renderBoard(){
+    // keep scale
+    els.diamondGrid.style.transform = `rotate(45deg) scale(${gridScale})`;
+
+    els.diamondGrid.innerHTML = "";
+    for(let y=0;y<H;y++){
+      for(let x=0;x<W;x++){
+        const id = cellId(x,y);
+        const cellDoc = boardCache.get(id);
+
+        const cell = document.createElement("div");
+        cell.className = "dcell";
+
+        if(cellDoc){
+          const owner = cellDoc.owner;
+          const udoc = usersCache.get(owner);
+          const fillColor = blendedColorForUser(udoc);
+
+          const fill = document.createElement("div");
+          fill.className = "fill";
+          fill.style.background = fillColor;
+          cell.appendChild(fill);
+
+          const name = document.createElement("div");
+          name.className = "name";
+          name.textContent = owner || "";
+          cell.appendChild(name);
+        }
+
+        cell.addEventListener("click", ()=> onPlaceTile(x,y));
+        els.diamondGrid.appendChild(cell);
+      }
+    }
+  }
+
+  // ====== QUIZ MODAL ======
   function openQuiz(qid){
     openQuizId = qid;
-
     const meta = quizzesCache.get(qid);
     const q = QUESTIONS.find(x => String(x.id) === String(qid));
 
+    clearMsg(els.quizMsg);
+
     if(!q){
-      setMsg(els.quizMsg, "לא מצאתי חידה בקובץ questions.json עבור id: " + qid, "bad");
+      setMsg(els.quizMsg, "לא מצאתי חידה עבור id: " + qid, "bad");
       showModal(els.quizModal);
       return;
     }
 
-    clearMsg(els.quizMsg);
     els.quizQuestion.textContent = q.q ?? "—";
 
     const firstAns = Array.isArray(q.a) ? q.a[0] : q.a;
@@ -674,89 +762,159 @@
     const ok = answers.includes(userAns);
     if(!ok){ setMsg(els.quizMsg, "לא נכון. נסה שוב.", "bad"); return; }
 
-    // כל משתמש יכול לפתור כל חידה, אבל הספירה עולה פעם אחת לכל משתמש לכל חידה
     const quizRef = doc(db,"games",GAME_ID,"quizzes",qid);
     const solverRef = doc(db,"games",GAME_ID,"quizzes",qid,"solvers",currentUser);
+    const userRef = doc(db,"games",GAME_ID,"users",currentUser);
 
     try{
       await runTransaction(db, async (tx)=>{
         const solverSnap = await tx.get(solverRef);
         if(solverSnap.exists()){
-          return; // כבר נספרת בחידה הזו
+          // כבר פתר בעבר — לא נותנים עוד אריח (כדי שלא יהיה farming)
+          return;
         }
+
         const quizSnap = await tx.get(quizRef);
-        const solvedCount = Number(quizSnap.data()?.solvedCount || 0);
+        const quiz = quizSnap.data() || {};
+        const colorIndex = Number(quiz.colorIndex ?? 0);
+        const tileColor = PALETTE[colorIndex] || PALETTE[0];
+
+        const uSnap = await tx.get(userRef);
+        const u = uSnap.data() || {};
+        const inv = Array.isArray(u.inventory) ? u.inventory.slice() : [];
+        inv.push(tileColor);
+
+        const solvedCount = Number(quiz.solvedCount || 0);
+
         tx.set(solverRef, { at: serverTimestamp() });
         tx.update(quizRef, { solvedCount: solvedCount + 1 });
+        tx.update(userRef, { inventory: inv, updatedAt: serverTimestamp() });
       });
 
-      setMsg(els.quizMsg, "נכון! עודכן שהמשתמש פתר את החידה.", "good");
+      // אם כבר פתר — נציג הודעה נעימה
+      const solverNow = await getDoc(doc(db,"games",GAME_ID,"quizzes",qid,"solvers",currentUser));
+      if(!solverNow.exists()){
+        // לא אמור לקרות
+        setMsg(els.quizMsg, "משהו מוזר קרה…", "bad");
+      }else{
+        // אם זה כבר היה קיים, ה-transaction חזר בלי לתת אריח. נבדיל לפי הודעה:
+        // הדרך הפשוטה: נסתכל אם ההודעה כבר הוגדרה.
+        // נציג הודעה שמכסה את שני המצבים:
+        setMsg(els.quizMsg, "נכון! אם זו הפעם הראשונה שלך בחידה הזו — קיבלת אריח למחסן.", "good");
+      }
     }catch(e){
-      setMsg(els.quizMsg, "שגיאה בעדכון החידה. בדוק Rules/חיבור.", "bad");
+      setMsg(els.quizMsg, "שגיאה בעדכון. בדוק Firestore Rules.", "bad");
+    }
+  }
+
+  // ====== PLACEMENT RULES ======
+  async function onPlaceTile(x,y){
+    if(!ensureLoggedIn()) return;
+
+    const me = usersCache.get(currentUser);
+    const inv = Array.isArray(me?.inventory) ? me.inventory : [];
+
+    if(selectedInvIndex == null){
+      flashMap("בחר אריח מהמחסן לפני הצבה.", "warn");
       return;
     }
-  }
+    if(selectedInvIndex < 0 || selectedInvIndex >= inv.length){
+      selectedInvIndex = null;
+      renderInventory();
+      flashMap("בחירת האריח התעדכנה — בחר שוב.", "warn");
+      return;
+    }
 
-  function renderBoard(){
-    els.grid.innerHTML = "";
-    for(let r=0;r<SIZE;r++){
-      for(let c=0;c<SIZE;c++){
-        const cell = document.createElement("div");
-        cell.className = "cell";
+    const id = cellId(x,y);
+    if(boardCache.get(id)){
+      flashMap("המשבצת כבר תפוסה.", "warn");
+      return;
+    }
 
-        const k = keyOf(r,c);
-        const tile = boardCache.get(k) || null;
+    const tileColor = inv[selectedInvIndex];
 
-        if(tile){
-          const p = document.createElement("div");
-          p.className = "paint";
-          p.style.background = tile.color || "#ffffff";
-          cell.appendChild(p);
+    const cellRef = doc(db,"games",GAME_ID,"board",id);
+    const userRef = doc(db,"games",GAME_ID,"users",currentUser);
 
-          const owner = document.createElement("div");
-          owner.className = "owner";
-          owner.textContent = tile.owner || "";
-          cell.appendChild(owner);
+    try{
+      await runTransaction(db, async (tx)=>{
+        const cellSnap = await tx.get(cellRef);
+        if(cellSnap.exists()) throw new Error("CELL_TAKEN");
 
-          // טלפון: tap toggle owner
-          cell.addEventListener("click", ()=>{
-            const o = cell.querySelector(".owner");
-            if(o) o.classList.toggle("show");
-          });
+        // read neighbors (up to 4)
+        const neigh = neighbors4(x,y);
+        const neighSnaps = [];
+        for(const [nx,ny] of neigh){
+          const nRef = doc(db,"games",GAME_ID,"board",cellId(nx,ny));
+          neighSnaps.push(await tx.get(nRef));
         }
 
-        cell.addEventListener("click", async ()=>{
-          if(!ensureLoggedIn()) return;
+        const anyNeighborOccupied = neighSnaps.some(s=>s.exists());
+        const touchingMy = neighSnaps.some(s=> s.exists() && (s.data()?.owner === currentUser));
 
-          // צובעים רק משבצת ריקה (מונע farm נקודות)
-          if(boardCache.get(k)) return;
+        const uSnap = await tx.get(userRef);
+        const u = uSnap.data() || {};
+        const myCount = Number(u.tilesCount || 0);
 
-          const color = PALETTE[selectedColorIndex] || PALETTE[0];
+        // inventory validation + remove by index safely (supports duplicates)
+        const invNow = Array.isArray(u.inventory) ? u.inventory.slice() : [];
+        if(invNow.length === 0) throw new Error("NO_INV");
+        if(selectedInvIndex < 0 || selectedInvIndex >= invNow.length) throw new Error("BAD_INV_INDEX");
+        const chosen = invNow[selectedInvIndex];
+        if(chosen !== tileColor){
+          // inventory changed since render; still allow by taking current at index
+          // but keep deterministic: use current value
+        }
+        const usedColor = invNow.splice(selectedInvIndex, 1)[0];
 
-          const batch = writeBatch(db);
-          batch.set(doc(db,"games",GAME_ID,"board", k), { color, owner: currentUser });
+        // RULES:
+        // first tile: must be isolated (no neighbors occupied)
+        if(myCount === 0){
+          if(anyNeighborOccupied) throw new Error("FIRST_NOT_ISOLATED");
+        } else {
+          // next tiles: must touch my existing territory
+          if(!touchingMy) throw new Error("NOT_TOUCHING_YOURS");
+        }
 
-          const meRef = doc(db,"games",GAME_ID,"users", currentUser);
-          const me = usersCache.get(currentUser) || {score:0};
-          batch.update(meRef, { score: (me.score||0) + 1, updatedAt: serverTimestamp() });
+        // update user blended sums
+        const {r,g,b} = hexToRgb(usedColor);
+        const newCount = myCount + 1;
+        const rSum = Number(u.rSum || 0) + r;
+        const gSum = Number(u.gSum || 0) + g;
+        const bSum = Number(u.bSum || 0) + b;
 
-          try{
-            await batch.commit();
-          }catch(e){
-            flashBoard("שגיאה בצביעה/ניקוד. בדוק Rules.", "bad");
-          }
+        tx.set(cellRef, { owner: currentUser, baseColor: usedColor, placedAt: serverTimestamp() });
+        tx.update(userRef, {
+          tilesCount: newCount,
+          rSum, gSum, bSum,
+          inventory: invNow,
+          updatedAt: serverTimestamp()
         });
+      });
 
-        els.grid.appendChild(cell);
-      }
+      // after successful place: selection resets
+      selectedInvIndex = null;
+      renderInventory();
+    }catch(e){
+      const msg = (e?.message || "");
+      if(msg.includes("CELL_TAKEN")) return flashMap("המשבצת נתפסה רגע לפניך.", "warn");
+      if(msg.includes("NO_INV")) return flashMap("אין לך אריחים במחסן.", "warn");
+      if(msg.includes("BAD_INV_INDEX")) return flashMap("בחירת האריח כבר לא תקפה. בחר מחדש.", "warn");
+      if(msg.includes("FIRST_NOT_ISOLATED")) return flashMap("האריח הראשון חייב להיות מבודד (ללא שכנים).", "bad");
+      if(msg.includes("NOT_TOUCHING_YOURS")) return flashMap("מותר להציב רק צמוד לשטח שלך.", "bad");
+      flashMap("שגיאה בהצבה. בדוק Rules/חיבור.", "bad");
     }
-    els.grid.style.transform = `scale(${boardScale})`;
   }
 
+  // ====== SCORES ======
   function openScores(){
     const entries = [...usersCache.entries()]
-      .map(([name,data])=>({name,score:Number(data.score||0)}))
-      .sort((a,b)=>b.score-a.score);
+      .map(([name,u])=>{
+        const tiles = Number(u.tilesCount || 0);
+        const pct = (tiles / TOTAL) * 100;
+        return {name, tiles, pct};
+      })
+      .sort((a,b)=> b.tiles - a.tiles);
 
     if(entries.length===0){
       els.scoresBody.textContent = "אין עדיין שחקנים.";
@@ -768,26 +926,54 @@
       const isMe = e.name===currentUser;
       return `
         <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:14px;
-          background:${isMe?"rgba(189,215,60,.14)":"rgba(255,255,255,.04)"}; border:1px solid rgba(255,255,255,.10);">
-          <div><b>${i+1}.</b> ${e.name}${isMe?` <span style="color:var(--accent)">• אתה</span>`:""}</div>
-          <div><b>${e.score}</b> נק׳</div>
+          background:${isMe?"rgba(231,232,233,.14)":"rgba(255,255,255,.04)"}; border:1px solid rgba(255,255,255,.10);">
+          <div style="min-width:0"><b>${i+1}.</b> ${e.name}${isMe?` <span style="color:var(--accent)">• אתה</span>`:""}</div>
+          <div style="text-align:left">
+            <div><b>${e.tiles}</b> אריחים</div>
+            <div style="font-size:12px;color:rgba(255,255,255,.75)"><b>${e.pct.toFixed(1)}%</b> מהשטח</div>
+          </div>
         </div>`;
     }).join("<div style='height:8px'></div>");
 
     showModal(els.scoresModal);
   }
+
   function renderScoresIfOpen(){
     if(els.scoresModal.style.display==="flex") openScores();
   }
 
-  // UI wiring
-  els.tabCards.addEventListener("click", ()=> setWorld("cards"));
-  els.tabBoard.addEventListener("click", ()=> { if(ensureLoggedIn()) setWorld("board"); });
+  // ====== LISTENERS ======
+  function startListeners(){
+    onSnapshot(usersCol, (qs)=>{
+      usersCache.clear();
+      qs.forEach(d=> usersCache.set(d.id, d.data()));
+      updateHud();
+      renderInventory();
+      renderBoard();       // because blended colors depend on user docs
+      renderScoresIfOpen();
+    });
 
-  els.btnBackCards.addEventListener("click", ()=> setWorld("cards"));
+    onSnapshot(quizzesCol, (qs)=>{
+      quizzesCache.clear();
+      qs.forEach(d=> quizzesCache.set(d.id, d.data()));
+      renderCards();
+    });
 
-  els.btnZoomIn.addEventListener("click", ()=>{ boardScale=Math.min(3, boardScale+0.1); renderBoard(); });
-  els.btnZoomOut.addEventListener("click", ()=>{ boardScale=Math.max(0.3, boardScale-0.1); renderBoard(); });
+    onSnapshot(boardCol, (qs)=>{
+      boardCache.clear();
+      qs.forEach(d=> boardCache.set(d.id, d.data()));
+      renderBoard();
+    });
+  }
+
+  // ====== UI WIRING ======
+  els.tabTiles.addEventListener("click", ()=> setWorld("tiles"));
+  els.tabMap.addEventListener("click", ()=> { if(ensureLoggedIn()) setWorld("map"); });
+
+  els.btnBackTiles.addEventListener("click", ()=> setWorld("tiles"));
+
+  els.btnZoomIn.addEventListener("click", ()=>{ gridScale=Math.min(2.6, gridScale+0.1); renderBoard(); });
+  els.btnZoomOut.addEventListener("click", ()=>{ gridScale=Math.max(0.5, gridScale-0.1); renderBoard(); });
 
   els.btnScores.addEventListener("click", openScores);
   els.btnScoresClose.addEventListener("click", ()=> hideModal(els.scoresModal));
@@ -820,11 +1006,9 @@
     m.addEventListener("click",(e)=>{ if(e.target===m) hideModal(m); });
   }
 
-  // Boot
+  // ====== BOOT ======
   (async function boot(){
-    renderPalette();
-    setWorld("cards");
-
+    setWorld("tiles");
     await loadQuestions();
     await ensureGameSeeded();
     startListeners();
