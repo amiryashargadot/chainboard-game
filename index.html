@@ -124,7 +124,7 @@
     .inv-wrap{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
     .diamond{
       width:46px;height:46px;
-      transform:rotate(45deg);
+      transform:none;
       border-radius:10px;
       border:2px solid rgba(255,255,255,.14);
       box-shadow:0 10px 22px rgba(0,0,0,.25);
@@ -739,7 +739,7 @@
   }
 
   function renderBoard(){
-    els.diamondGrid.style.transform = `rotate(45deg) scale(${gridScale})`;
+    els.diamondGrid.style.transform = none;
     els.diamondGrid.innerHTML = "";
 
     for(let y=0;y<H;y++){
