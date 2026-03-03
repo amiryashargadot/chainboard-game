@@ -254,7 +254,7 @@
 <header>
   <div class="brand">
     <img src="logo.png" alt="לוגו"/>
-    <div class="title">ChainBoard</div>
+    <div class="title">תוכן עניינים</div>
   </div>
 
   <div class="hud">
@@ -275,17 +275,20 @@
         <div class="card" style="flex:1 1 420px;">
           <h2>אריחים</h2>
           <div class="muted">
-            פותרים חידה → מקבלים אריח למחסן. חידה שכבר פתרת תהיה אפורה.
+            על כל חידה שתפתרו
+            תקבלו אריח צבעוני להניח על מפת המשחק.
+            ניתן להציע חידות חדשות בכפתור למעלה מצד שמאל
+            
           </div>
         </div>
 
         <div class="card" style="flex:1 1 320px;">
           <h2>כללי הצבה במפה</h2>
           <div class="muted">
-            • האריח הראשון שלך חייב להיות מבודד (לא נוגע בשום אריח).<br/>
+            • האריח הראשון שלך חייב להיות מבודד (לא נוגע בשום אריח אחר).<br/>
             • מכאן והלאה — מותר להציב רק אם האריח נוגע באריחים שלך (צמוד צד).<br/>
             • צבע השטח שלך הוא ממוצע משוקלל של כל האריחים שהנחת.<br/>
-            • הלוח הוא 200 אריחים (כל אריח = 0.5%).
+            • על כל אריח שמציבים במפה מקבלים נקודה, אבל מה שהכי חשוב זה כמה אחוז מהמפה תפסת.
           </div>
         </div>
       </div>
@@ -342,7 +345,7 @@
 </div>
 
 <footer>
-  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">להכניס עניין לתוכן</a>
+  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">תוכן עניינים | להכניס עניין לתוכן</a>
 </footer>
 
 <!-- מודאל כניסה -->
@@ -451,7 +454,7 @@
 
   // ====== GAME CONFIG ======
   const GAME_ID = "chainboard_territory_v1";
-  const W = 20, H = 10, TOTAL = W * H; // 200
+  const W = 20, H = 20, TOTAL = W * H; // 400
 
   const PALETTE = [
     "#f7941d", "#e7e8e9", "#00C2FF", "#FF4D6D", "#8B5CF6",
