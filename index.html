@@ -1151,28 +1151,34 @@
 
   // ====== LISTENERS ======
   function startListeners(){
-    onSnapshot(usersCol, (qs)=>{
-      usersCache.clear();
-      qs.forEach(d=> usersCache.set(d.id, d.data()));
-      updateHud();
-      renderInventory();
-      renderBoard();
-      renderCards();
-      renderScoresIfOpen();
-    });
+  onSnapshot(usersCol, (qs)=>{
+    usersCache.clear();
+    qs.forEach(d=> usersCache.set(d.id, d.data()));
+    updateHud();
+    renderInventory();
+    renderBoard();
+    renderCards();
+    renderScoresIfOpen();
+  }, (err)=>{
+    console.error("usersCol snapshot error:", err);
+  });
 
-    onSnapshot(quizzesCol, (qs)=>{
-      quizzesCache.clear();
-      qs.forEach(d=> quizzesCache.set(d.id, d.data()));
-      renderCards();
-    });
+  onSnapshot(quizzesCol, (qs)=>{
+    quizzesCache.clear();
+    qs.forEach(d=> quizzesCache.set(d.id, d.data()));
+    renderCards();
+  }, (err)=>{
+    console.error("quizzesCol snapshot error:", err);
+  });
 
-    onSnapshot(boardCol, (qs)=>{
-      boardCache.clear();
-      qs.forEach(d=> boardCache.set(d.id, d.data()));
-      renderBoard();
-    });
-  }
+  onSnapshot(boardCol, (qs)=>{
+    boardCache.clear();
+    qs.forEach(d=> boardCache.set(d.id, d.data()));
+    renderBoard();
+  }, (err)=>{
+    console.error("boardCol snapshot error:", err);
+  });
+}
 
   // ====== UI WIRING ======
   els.tabTiles.addEventListener("click", ()=> setWorld("tiles"));
