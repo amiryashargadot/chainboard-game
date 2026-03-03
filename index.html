@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>ChainBoard – Tiles</title>
+  <title>ChainBoard</title>
 
   <style>
     :root{
       --bg:#000000;
-      --stage:#f7941d;      /* כתום */
-      --accent:#e7e8e9;     /* ✅ כל "ירוק" מוחלף לזה */
+      --stage:#f7941d;        /* כתום */
+      --accent:#e7e8e9;       /* ✅ החלפת כל הירוק */
       --text:#F5F5F5;
 
       --shadow: 0 14px 40px rgba(0,0,0,.45);
@@ -96,11 +96,16 @@
       border-radius:18px;
       box-shadow:0 10px 25px rgba(0,0,0,.35);
       padding:12px;position:relative;cursor:pointer;user-select:none;
-      transition:transform .12s ease, filter .12s ease;
+      transition:transform .12s ease, filter .12s ease, opacity .12s ease;
       border:2px solid rgba(255,255,255,.10);
       overflow:hidden;
     }
     .quiz-card:hover{transform:translateY(-2px);filter:brightness(1.03);}
+    .quiz-card.solved{
+      filter: grayscale(1);
+      opacity: .45;
+      cursor: not-allowed;
+    }
     .qc-small{
       position:absolute;top:10px;right:10px;
       font-size:11px;color:rgba(0,0,0,.75);
@@ -144,7 +149,6 @@
     .board-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
     .grid-container{position:relative;overflow:auto;max-width:100%;}
 
-    /* diamond grid: rotate container, counter-rotate content */
     .diamond-grid{
       display:grid;
       grid-template-columns:repeat(20, 44px);
@@ -172,7 +176,7 @@
 
     .dcell .fill{
       position:absolute;inset:0;
-      transform: rotate(-45deg) scale(1.15); /* keeps the color area nice */
+      transform: rotate(-45deg) scale(1.15);
       transform-origin:center center;
       border-radius:12px;
       opacity:1;
@@ -258,6 +262,7 @@
     <div class="pill" title="אריחים שהנחת">🧩 <span id="hudTiles">0</span></div>
     <div class="pill" title="אחוז שטח מתוך 200">📐 <span id="hudPct">0.0</span>%</div>
     <button class="btn secondary" id="btnScores">לוח נקודות</button>
+    <button class="btn secondary" id="btnSuggest">הצע חידה</button>
     <button class="btn danger" id="btnLogout">יציאה</button>
   </div>
 </header>
@@ -270,7 +275,7 @@
         <div class="card" style="flex:1 1 420px;">
           <h2>אריחים</h2>
           <div class="muted">
-            פותרים חידה → מקבלים אריח למחסן. כל חידה נותנת אריח פעם אחת לכל משתמש.
+            פותרים חידה → מקבלים אריח למחסן. חידה שכבר פתרת תהיה אפורה.
           </div>
         </div>
 
@@ -290,6 +295,14 @@
       <div class="cards-wrap">
         <div class="cards-top" aria-hidden="true"></div>
         <div id="cardsGrid" class="cards-grid"></div>
+      </div>
+
+      <div style="height:16px"></div>
+
+      <!-- ✅ inventory also on tiles page -->
+      <div class="card">
+        <h2>מחסן האריחים שלך</h2>
+        <div id="inventoryTilesPage" class="inv-wrap"></div>
       </div>
     </div>
   </section>
@@ -313,10 +326,6 @@
           <div style="height:10px"></div>
           <div class="muted" style="margin-bottom:6px;">מחסן האריחים שלך:</div>
           <div id="inventory" class="inv-wrap"></div>
-
-          <div class="muted" style="margin-top:10px;">
-            טיפ: אם אין לך אריחים במחסן — חזור ל״אריחים״ ופתור חידה.
-          </div>
         </div>
 
         <div class="grid-container" style="flex:1 1 320px;">
@@ -366,7 +375,7 @@
     </header>
     <div class="body">
       <div class="msg" id="quizQuestion">—</div>
-      <div class="help" id="quizHint">מספר אותיות: —</div>
+      <div class="help" id="quizHint">מספר תווים: —</div>
       <div class="field">
         <label>התשובה שלך</label>
         <input type="text" id="quizAnswer" placeholder="כתוב/כתבי כאן" autocomplete="off"/>
@@ -391,12 +400,40 @@
   </div>
 </div>
 
+<!-- מודאל הצעת חידה -->
+<div class="modal-backdrop" id="suggestModal">
+  <div class="modal">
+    <header><h3>הצע חידה</h3></header>
+    <div class="body">
+      <div class="field">
+        <label>החידה</label>
+        <input type="text" id="suggestQ" placeholder="כתוב את החידה"/>
+      </div>
+      <div class="field">
+        <label>הפתרון</label>
+        <input type="text" id="suggestA" placeholder="כתוב את הפתרון"/>
+      </div>
+      <div class="field">
+        <label>הסבר (אופציונלי)</label>
+        <input type="text" id="suggestE" placeholder="למה זה הפתרון?"/>
+      </div>
+      <div id="suggestMsg" class="msg hidden"></div>
+      <div class="help">ההצעה נשמרת ב-Firestore תחת suggestions כדי שתוכל להעתיק אחר כך ל-questions.json.</div>
+    </div>
+    <div class="footer">
+      <button class="btn secondary" id="btnSuggestClose">סגור</button>
+      <button class="btn" id="btnSuggestSubmit">שלח</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
   import {
     getFirestore, doc, setDoc, getDoc,
     onSnapshot, collection, getDocs,
-    writeBatch, serverTimestamp, runTransaction
+    writeBatch, serverTimestamp, runTransaction,
+    addDoc, arrayUnion
   } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -414,12 +451,8 @@
 
   // ====== GAME CONFIG ======
   const GAME_ID = "chainboard_territory_v1";
-  // 200 tiles => 20x10 (each tile is 0.5%)
-  const W = 20;
-  const H = 10;
-  const TOTAL = W * H; // 200
+  const W = 20, H = 10, TOTAL = W * H; // 200
 
-  // Palette for quiz tiles (colors stored in inventory)
   const PALETTE = [
     "#f7941d", "#e7e8e9", "#00C2FF", "#FF4D6D", "#8B5CF6",
     "#22C55E", "#FBBF24", "#EF4444", "#14B8A6", "#FFFFFF"
@@ -429,18 +462,8 @@
   const gameRef = doc(db, "games", GAME_ID);
   const usersCol = collection(db, "games", GAME_ID, "users");
   const quizzesCol = collection(db, "games", GAME_ID, "quizzes");
-  const boardCol = collection(db, "games", GAME_ID, "board"); // cell docs: "x_y"
-
-  // user doc schema:
-  // { tilesCount, rSum, gSum, bSum, inventory: [hex,...], updatedAt }
-  //
-  // board cell doc:
-  // { owner, baseColor, placedAt }
-  //
-  // quiz doc:
-  // { colorIndex, solvedCount }
-  // solvers subcol:
-  // quizzes/{qid}/solvers/{username}: { at }
+  const boardCol = collection(db, "games", GAME_ID, "board");
+  const suggestionsCol = collection(db, "games", GAME_ID, "suggestions");
 
   // ====== UI ======
   const els = {
@@ -458,6 +481,15 @@
     scoresModal: document.getElementById("scoresModal"),
     scoresBody: document.getElementById("scoresBody"),
 
+    btnSuggest: document.getElementById("btnSuggest"),
+    suggestModal: document.getElementById("suggestModal"),
+    suggestQ: document.getElementById("suggestQ"),
+    suggestA: document.getElementById("suggestA"),
+    suggestE: document.getElementById("suggestE"),
+    suggestMsg: document.getElementById("suggestMsg"),
+    btnSuggestClose: document.getElementById("btnSuggestClose"),
+    btnSuggestSubmit: document.getElementById("btnSuggestSubmit"),
+
     btnLogout: document.getElementById("btnLogout"),
     btnBackTiles: document.getElementById("btnBackTiles"),
     btnZoomIn: document.getElementById("btnZoomIn"),
@@ -465,6 +497,7 @@
 
     cardsGrid: document.getElementById("cardsGrid"),
     inventory: document.getElementById("inventory"),
+    inventoryTilesPage: document.getElementById("inventoryTilesPage"),
     diamondGrid: document.getElementById("diamondGrid"),
     mapMsg: document.getElementById("mapMsg"),
 
@@ -497,11 +530,11 @@
   let currentUser = localStorage.getItem(SESSION_KEY) || "";
   let QUESTIONS = [];
 
-  let usersCache = new Map();   // username -> userdoc
-  let quizzesCache = new Map(); // qid -> quizdoc
-  let boardCache = new Map();   // "x_y" -> celldoc
+  let usersCache = new Map();
+  let quizzesCache = new Map();
+  let boardCache = new Map();
 
-  let selectedInvIndex = null;  // inventory index
+  let selectedInvIndex = null;
   let gridScale = 1;
 
   let openQuizId = null;
@@ -537,6 +570,7 @@
       tilesCount: 0,
       rSum: 0, gSum: 0, bSum: 0,
       inventory: [],
+      solvedQuizzes: [],
       updatedAt: serverTimestamp(),
     });
 
@@ -628,6 +662,9 @@
   function renderCards(){
     els.cardsGrid.innerHTML = "";
 
+    const me = usersCache.get(currentUser);
+    const solved = Array.isArray(me?.solvedQuizzes) ? me.solvedQuizzes : [];
+
     for (let i = 0; i < QUESTIONS.length; i++) {
       const q = QUESTIONS[i];
       const qid = String(q.id);
@@ -636,8 +673,10 @@
       const color = PALETTE[qMeta.colorIndex] || PALETTE[0];
       const solvedCount = Number(qMeta.solvedCount || 0);
 
+      const alreadySolved = solved.includes(qid);
+
       const card = document.createElement("div");
-      card.className = "quiz-card";
+      card.className = "quiz-card" + (alreadySolved ? " solved" : "");
       card.style.background = color;
 
       const small = document.createElement("div");
@@ -652,6 +691,10 @@
 
       card.addEventListener("click", ()=>{
         if(!ensureLoggedIn()) return;
+        if(alreadySolved){
+          alert("פתרת כבר את חידה זו");
+          return;
+        }
         openQuiz(qid);
       });
 
@@ -663,35 +706,40 @@
     const me = usersCache.get(currentUser);
     const inv = Array.isArray(me?.inventory) ? me.inventory : [];
 
-    els.inventory.innerHTML = "";
+    const renderInto = (container)=>{
+      container.innerHTML = "";
+      if(inv.length === 0){
+        const d = document.createElement("div");
+        d.className = "muted";
+        d.textContent = "אין לך אריחים כרגע.";
+        container.appendChild(d);
+        return;
+      }
+
+      inv.forEach((hex, idx)=>{
+        const t = document.createElement("div");
+        t.className = "diamond" + (idx===selectedInvIndex ? " selected" : "");
+        t.style.background = hex;
+        t.title = hex;
+        t.addEventListener("click", ()=>{
+          selectedInvIndex = idx;
+          renderInventory();
+        });
+        container.appendChild(t);
+      });
+    };
+
+    // reset invalid selection
     selectedInvIndex = (selectedInvIndex != null && selectedInvIndex < inv.length) ? selectedInvIndex : null;
 
-    if(inv.length === 0){
-      const d = document.createElement("div");
-      d.className = "muted";
-      d.textContent = "אין לך אריחים כרגע.";
-      els.inventory.appendChild(d);
-      return;
-    }
-
-    inv.forEach((hex, idx)=>{
-      const t = document.createElement("div");
-      t.className = "diamond" + (idx===selectedInvIndex ? " selected" : "");
-      t.style.background = hex;
-      t.title = hex;
-      t.addEventListener("click", ()=>{
-        selectedInvIndex = idx;
-        renderInventory();
-      });
-      els.inventory.appendChild(t);
-    });
+    renderInto(els.inventory);
+    renderInto(els.inventoryTilesPage);
   }
 
   function renderBoard(){
-    // keep scale
     els.diamondGrid.style.transform = `rotate(45deg) scale(${gridScale})`;
-
     els.diamondGrid.innerHTML = "";
+
     for(let y=0;y<H;y++){
       for(let x=0;x<W;x++){
         const id = cellId(x,y);
@@ -770,8 +818,7 @@
       await runTransaction(db, async (tx)=>{
         const solverSnap = await tx.get(solverRef);
         if(solverSnap.exists()){
-          // כבר פתר בעבר — לא נותנים עוד אריח (כדי שלא יהיה farming)
-          return;
+          return; // כבר פתר -> לא נותנים עוד אריח
         }
 
         const quizSnap = await tx.get(quizRef);
@@ -788,20 +835,15 @@
 
         tx.set(solverRef, { at: serverTimestamp() });
         tx.update(quizRef, { solvedCount: solvedCount + 1 });
-        tx.update(userRef, { inventory: inv, updatedAt: serverTimestamp() });
+        tx.update(userRef, {
+          inventory: inv,
+          solvedQuizzes: arrayUnion(qid),
+          updatedAt: serverTimestamp()
+        });
       });
 
-      // אם כבר פתר — נציג הודעה נעימה
-      const solverNow = await getDoc(doc(db,"games",GAME_ID,"quizzes",qid,"solvers",currentUser));
-      if(!solverNow.exists()){
-        // לא אמור לקרות
-        setMsg(els.quizMsg, "משהו מוזר קרה…", "bad");
-      }else{
-        // אם זה כבר היה קיים, ה-transaction חזר בלי לתת אריח. נבדיל לפי הודעה:
-        // הדרך הפשוטה: נסתכל אם ההודעה כבר הוגדרה.
-        // נציג הודעה שמכסה את שני המצבים:
-        setMsg(els.quizMsg, "נכון! אם זו הפעם הראשונה שלך בחידה הזו — קיבלת אריח למחסן.", "good");
-      }
+      setMsg(els.quizMsg, "נכון! קיבלת אריח למחסן.", "good");
+      setTimeout(()=>{ hideModal(els.quizModal); openQuizId=null; }, 650);
     }catch(e){
       setMsg(els.quizMsg, "שגיאה בעדכון. בדוק Firestore Rules.", "bad");
     }
@@ -831,8 +873,6 @@
       return;
     }
 
-    const tileColor = inv[selectedInvIndex];
-
     const cellRef = doc(db,"games",GAME_ID,"board",id);
     const userRef = doc(db,"games",GAME_ID,"users",currentUser);
 
@@ -841,12 +881,10 @@
         const cellSnap = await tx.get(cellRef);
         if(cellSnap.exists()) throw new Error("CELL_TAKEN");
 
-        // read neighbors (up to 4)
         const neigh = neighbors4(x,y);
         const neighSnaps = [];
         for(const [nx,ny] of neigh){
-          const nRef = doc(db,"games",GAME_ID,"board",cellId(nx,ny));
-          neighSnaps.push(await tx.get(nRef));
+          neighSnaps.push(await tx.get(doc(db,"games",GAME_ID,"board",cellId(nx,ny))));
         }
 
         const anyNeighborOccupied = neighSnaps.some(s=>s.exists());
@@ -856,27 +894,18 @@
         const u = uSnap.data() || {};
         const myCount = Number(u.tilesCount || 0);
 
-        // inventory validation + remove by index safely (supports duplicates)
         const invNow = Array.isArray(u.inventory) ? u.inventory.slice() : [];
         if(invNow.length === 0) throw new Error("NO_INV");
         if(selectedInvIndex < 0 || selectedInvIndex >= invNow.length) throw new Error("BAD_INV_INDEX");
-        const chosen = invNow[selectedInvIndex];
-        if(chosen !== tileColor){
-          // inventory changed since render; still allow by taking current at index
-          // but keep deterministic: use current value
-        }
+
         const usedColor = invNow.splice(selectedInvIndex, 1)[0];
 
-        // RULES:
-        // first tile: must be isolated (no neighbors occupied)
         if(myCount === 0){
           if(anyNeighborOccupied) throw new Error("FIRST_NOT_ISOLATED");
         } else {
-          // next tiles: must touch my existing territory
           if(!touchingMy) throw new Error("NOT_TOUCHING_YOURS");
         }
 
-        // update user blended sums
         const {r,g,b} = hexToRgb(usedColor);
         const newCount = myCount + 1;
         const rSum = Number(u.rSum || 0) + r;
@@ -892,7 +921,6 @@
         });
       });
 
-      // after successful place: selection resets
       selectedInvIndex = null;
       renderInventory();
     }catch(e){
@@ -942,6 +970,42 @@
     if(els.scoresModal.style.display==="flex") openScores();
   }
 
+  // ====== SUGGESTIONS ======
+  els.btnSuggest.addEventListener("click", ()=>{
+    if(!ensureLoggedIn()) return;
+    clearMsg(els.suggestMsg);
+    els.suggestQ.value = "";
+    els.suggestA.value = "";
+    els.suggestE.value = "";
+    showModal(els.suggestModal);
+  });
+  els.btnSuggestClose.addEventListener("click", ()=> hideModal(els.suggestModal));
+  els.btnSuggestSubmit.addEventListener("click", async ()=>{
+    if(!ensureLoggedIn()) return;
+
+    const q = els.suggestQ.value.trim();
+    const a = els.suggestA.value.trim();
+    const e = els.suggestE.value.trim();
+
+    if(!q || !a){
+      setMsg(els.suggestMsg, "צריך חידה ופתרון.", "bad");
+      return;
+    }
+
+    try{
+      await addDoc(suggestionsCol, {
+        question: q,
+        answer: a,
+        explanation: e,
+        user: currentUser,
+        createdAt: serverTimestamp()
+      });
+      setMsg(els.suggestMsg, "נשלח! תודה 🙌", "good");
+    }catch(err){
+      setMsg(els.suggestMsg, "שגיאה בשליחה. בדוק Rules.", "bad");
+    }
+  });
+
   // ====== LISTENERS ======
   function startListeners(){
     onSnapshot(usersCol, (qs)=>{
@@ -949,7 +1013,8 @@
       qs.forEach(d=> usersCache.set(d.id, d.data()));
       updateHud();
       renderInventory();
-      renderBoard();       // because blended colors depend on user docs
+      renderBoard();
+      renderCards();        // needs solvedQuizzes
       renderScoresIfOpen();
     });
 
@@ -975,7 +1040,7 @@
   els.btnZoomIn.addEventListener("click", ()=>{ gridScale=Math.min(2.6, gridScale+0.1); renderBoard(); });
   els.btnZoomOut.addEventListener("click", ()=>{ gridScale=Math.max(0.5, gridScale-0.1); renderBoard(); });
 
-  els.btnScores.addEventListener("click", openScores);
+  els.btnScores.addEventListener("click", ()=>{ if(!ensureLoggedIn()) return; openScores(); });
   els.btnScoresClose.addEventListener("click", ()=> hideModal(els.scoresModal));
 
   els.btnLogin.addEventListener("click", async ()=>{
@@ -1002,7 +1067,7 @@
     showModal(els.loginModal);
   });
 
-  for(const m of [els.quizModal, els.scoresModal, els.loginModal]){
+  for(const m of [els.quizModal, els.scoresModal, els.loginModal, els.suggestModal]){
     m.addEventListener("click",(e)=>{ if(e.target===m) hideModal(m); });
   }
 
