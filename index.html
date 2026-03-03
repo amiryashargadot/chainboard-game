@@ -9,12 +9,16 @@
     :root{
       --bg:#000000;
       --stage:#f7941d;        /* כתום */
-      --accent:#e7e8e9;       /* אפור בהיר במקום הירוק */
+      --accent:#e7e8e9;       /* החלפת הירוק */
       --text:#F5F5F5;
 
       --shadow: 0 14px 40px rgba(0,0,0,.45);
       --radius:18px;
       --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Hebrew", sans-serif;
+
+      /* Board sizing variables (computed in JS) */
+      --cell: 28px;
+      --gap: 6px;
     }
 
     *{box-sizing:border-box}
@@ -27,7 +31,7 @@
       border-bottom:1px solid rgba(231,232,233,.25);backdrop-filter: blur(10px);
     }
 
-    .brand{display:flex;align-items:center;gap:12px;}
+    .brand{display:flex;align-items:center;gap:12px;min-width:220px;}
     .brand img{height:34px;width:auto;display:block;filter: drop-shadow(0 8px 18px rgba(0,0,0,.35));}
     .brand .title{font-weight:950;color:rgba(255,255,255,.9);font-size:14px;letter-spacing:.2px}
 
@@ -46,15 +50,14 @@
       box-shadow:0 10px 22px rgba(0,0,0,.28);
       transition:transform .08s ease, background .15s ease, border-color .15s ease;
       user-select:none;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
+      white-space:nowrap;
     }
     .btn:hover{transform:translateY(-1px);background:rgba(231,232,233,.14);border-color:rgba(231,232,233,.55);}
     .btn:active{transform:translateY(0px) scale(.99);}
     .btn.secondary{background:rgba(255,255,255,.04);color:var(--text);border-color:rgba(255,255,255,.14);font-weight:650;}
     .btn.danger{border-color:rgba(251,113,133,.5);background:rgba(251,113,133,.12);color:#ffd6dd;}
 
-    main{min-height: calc(100svh - 58px - 74px - 56px);} /* header + tabs + footer */
+    main{min-height: calc(100svh - 58px - 74px - 56px);}
 
     .stage{
       background: linear-gradient(180deg, #ffad45 0%, var(--stage) 45%, #f07d00 100%);
@@ -80,6 +83,13 @@
     .card h2{margin:0 0 10px 0;font-size:14px;color:var(--accent);letter-spacing:.3px;}
     .muted{color:rgba(255,255,255,.78);font-size:12px;line-height:1.35;}
 
+    /* === Tiles page: text cards hug content, no giant empty height === */
+    #tilesWorld .row .card{flex:1 1 auto; height:auto;}
+    @media (max-width: 900px){
+      #tilesWorld .row{flex-direction:column;}
+      #tilesWorld .row .card{width:100%;}
+    }
+
     /* Cards grid */
     .cards-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid rgba(0,0,0,.18);background:rgba(0,0,0,.10);}
     .cards-top{
@@ -102,8 +112,6 @@
       transition:transform .12s ease, filter .12s ease, opacity .12s ease;
       border:2px solid rgba(255,255,255,.10);
       overflow:hidden;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
     }
     .quiz-card:hover{transform:translateY(-2px);filter:brightness(1.03);}
     .quiz-card.solved{
@@ -125,18 +133,15 @@
       text-shadow:0 2px 0 rgba(255,255,255,.25);
     }
 
-    /* Inventory (squares) */
+    /* Inventory (tiles) */
     .inv-wrap{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
     .diamond{
       width:46px;height:46px;
-      transform:none;
       border-radius:10px;
       border:2px solid rgba(255,255,255,.14);
       box-shadow:0 10px 22px rgba(0,0,0,.25);
       cursor:pointer;
       position:relative;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
     }
     .diamond.selected{
       outline:3px solid rgba(231,232,233,.55);
@@ -147,59 +152,65 @@
       box-shadow: inset 0 0 0 2px rgba(0,0,0,.14);
     }
 
-    /* Board */
+    /* Map world */
     .board-stage{
       background: linear-gradient(180deg, rgba(0,0,0,.95) 0%, rgba(0,0,0,.88) 100%);
       padding-bottom:18px;border-top:1px solid rgba(255,255,255,.08);
     }
-    .board-wrap{display:flex;flex-direction:column;gap:12px;}
+
+    .board-wrap{display:flex;flex-direction:column;gap:10px;}
     .board-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 
-    /* המסגרת של הלוח */
-    .grid-container{
-      position:relative;
-      overflow:hidden;               /* ✅ בלי גלילה כשזום=1 */
-      max-width:100%;
-      border-radius:18px;
-    }
+    .msg{padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:13px;line-height:1.35;}
+    .msg.good{border-color: rgba(74,222,128,.35); background: rgba(74,222,128,.12);}
+    .msg.bad{border-color: rgba(251,113,133,.45); background: rgba(251,113,133,.12);}
+    .msg.warn{border-color: rgba(251,191,36,.45); background: rgba(251,191,36,.12); color:#fff7d1;}
+    .hidden{display:none !important;}
 
-    /* הגריד עצמו מתאים דינמית עם JS */
-    .diamond-grid{
-      display:grid;
-      gap: var(--gap, 4px);
-      padding: var(--pad, 8px);
+    /* Board frame:
+       - by default: NO scroll (fits frame)
+       - when zoom > 1: scroll inside frame */
+    .grid-frame{
+      width:100%;
       border-radius:18px;
       background:rgba(255,255,255,.06);
       border:1px solid rgba(255,255,255,.10);
       box-shadow:var(--shadow);
-      width: max-content;            /* ✅ מאפשר גלילה פנימית כשגדול מהמסגרת */
+      overflow:hidden; /* toggled to auto by JS on zoom */
+      max-height: min(62svh, 520px); /* compact, not huge */
+    }
+
+    /* Board grid (straight, NOT diagonal) */
+    .diamond-grid{
+      display:grid;
+      grid-template-columns: repeat(var(--W), var(--cell));
+      grid-template-rows: repeat(var(--H), var(--cell));
+      gap: var(--gap);
+      padding:12px;
+      width: max-content; /* allows scroll only when zoomed */
+      transform: none !important; /* ensure NOT diagonal */
     }
 
     .dcell{
-      width: var(--cell, 24px);
-      height: var(--cell, 24px);
-      border-radius:8px;
+      width: var(--cell);
+      height: var(--cell);
+      border-radius: 10px;
       background:rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.08);
       cursor:pointer;
       position:relative;
       overflow:hidden;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
     }
     .dcell:hover{background:rgba(255,255,255,.07);}
 
     .dcell .fill{
       position:absolute;inset:0;
-      transform:none;
-      border-radius:8px;
+      border-radius:10px;
       opacity:1;
     }
-
     .dcell .name{
       position:absolute;inset:0;
       display:flex;align-items:center;justify-content:center;
-      transform:none;
       font-size:10px;font-weight:900;
       color:rgba(255,255,255,.92);
       text-shadow: 0 2px 8px rgba(0,0,0,.65);
@@ -207,12 +218,6 @@
       text-align:center;
       pointer-events:none;
     }
-
-    .msg{padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:13px;line-height:1.35;}
-    .msg.good{border-color: rgba(74,222,128,.35); background: rgba(74,222,128,.12);}
-    .msg.bad{border-color: rgba(251,113,133,.45); background: rgba(251,113,133,.12);}
-    .msg.warn{border-color: rgba(251,191,36,.45); background: rgba(251,191,36,.12); color:#fff7d1;}
-    .hidden{display:none !important;}
 
     .tabs{
       position:sticky;bottom:56px;z-index:10;padding:10px 12px;
@@ -223,8 +228,6 @@
       flex:1;max-width:260px;text-align:center;padding:12px 12px;border-radius:16px;cursor:pointer;
       user-select:none;border:1px solid rgba(231,232,233,.25);background:rgba(255,255,255,.04);
       color:rgba(231,232,233,.92);font-weight:950;letter-spacing:.2px;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
     }
     .tab.active{background:rgba(231,232,233,.18);border-color:rgba(231,232,233,.55);color:var(--accent);box-shadow:0 12px 28px rgba(0,0,0,.35);}
 
@@ -264,47 +267,13 @@
     .help{font-size:12px;color:rgba(255,255,255,.70);line-height:1.35;}
     .modal .footer{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding-top:12px;}
 
-    /* ===== Responsive for whole site ===== */
+    /* Mobile: keep things compact */
     @media (max-width: 900px){
-      header{
-        flex-direction:column;
-        align-items:stretch;
-        gap:10px;
-      }
-      .brand{
-        justify-content:space-between;
-      }
-      .hud{
-        justify-content:flex-start;
-        gap:8px;
-      }
-      .row{
-        flex-direction:column;
-      }
-      .card{width:100%;}
-      .cards-grid{
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-        grid-auto-rows: 140px;
-        max-height:none;
-      }
-      .tab{
-        max-width:none;
-        padding:14px 12px;
-        font-size:15px;
-      }
-      .modal{
-        width:min(94vw, 560px);
-        padding:12px;
-      }
-      /* על מובייל הטקסט בתוך תאים נהיה קטן יותר כדי לא להעמיס */
-      .dcell .name{font-size:9px;}
-    }
-
-    @media (max-width: 420px){
-      .pill{font-size:11px;padding:6px 8px;}
-      .btn{font-size:12px;padding:9px 10px;}
-      .brand img{height:30px;}
-      .qc-big{font-size:40px;}
+      header{align-items:flex-start}
+      .brand{min-width:auto}
+      .hud{justify-content:flex-start}
+      .cards-grid{max-height:none}
+      .grid-frame{max-height:min(55svh, 420px);}
     }
   </style>
 </head>
@@ -334,8 +303,8 @@
         <div class="card" style="flex:1 1 420px;">
           <h2>אריחים</h2>
           <div class="muted">
-            על כל חידה שתפתרו תקבלו אריח צבעוני להניח על מפת המשחק.
-            ניתן להציע חידות חדשות בכפתור למעלה.
+            על כל חידה שתפתרו תקבלו אריח צבעוני למחסן.
+            אפשר להציע חידות חדשות בכפתור למעלה.
           </div>
         </div>
 
@@ -345,7 +314,7 @@
             • האריח הראשון שלך חייב להיות מבודד (לא נוגע בשום אריח אחר).<br/>
             • מכאן והלאה — מותר להציב רק אם האריח נוגע באריחים שלך (צמוד צד).<br/>
             • צבע השטח שלך הוא ממוצע משוקלל של כל האריחים שהנחת.<br/>
-            • על כל אריח שמציבים מקבלים נקודה, והכי חשוב — אחוז מהמפה.
+            • לוח הנקודות מציג: מספר אריחים ואחוז מהשטח.
           </div>
         </div>
       </div>
@@ -369,29 +338,27 @@
   <!-- מפה -->
   <section id="mapWorld" class="board-stage hidden">
     <div class="section">
-      <div class="row">
-        <div class="card board-wrap" style="flex:1 1 420px;">
-          <h2>מפה</h2>
-          <div class="muted">בחר אריח מהמחסן → לחץ על משבצת במפה כדי להציב.</div>
+      <!-- ✅ Everything in ONE card so widths match -->
+      <div class="card board-wrap">
+        <h2>מפה</h2>
+        <div class="muted">בחר אריח מהמחסן → לחץ על משבצת במפה כדי להציב.</div>
 
-          <div id="mapMsg" class="msg warn hidden"></div>
+        <div id="mapMsg" class="msg warn hidden"></div>
 
-          <div class="board-actions">
-            <button class="btn secondary" id="btnBackTiles">חזור לאריחים</button>
-
-            <!-- ✅ Zoom controls: when zoom > 1 scroll is enabled inside the frame -->
-            <button class="btn secondary" id="btnZoomOut">– זום אאוט</button>
-            <button class="btn secondary" id="btnZoomIn">+ זום אין</button>
-            <button class="btn secondary" id="btnZoomReset">איפוס זום</button>
-          </div>
-
-          <div style="height:10px"></div>
-          <div class="muted" style="margin-bottom:6px;">מחסן האריחים שלך:</div>
-          <div id="inventory" class="inv-wrap"></div>
+        <div class="board-actions">
+          <button class="btn secondary" id="btnBackTiles">חזור לאריחים</button>
+          <button class="btn secondary" id="btnZoomOut">– זום אאוט</button>
+          <button class="btn secondary" id="btnZoomIn">+ זום אין</button>
+          <button class="btn secondary" id="btnZoomReset">איפוס</button>
         </div>
 
-        <!-- ✅ Frame that always fits; scroll appears only when zoom > 1 -->
-        <div class="grid-container" id="gridFrame" style="flex:1 1 320px;">
+        <div class="muted" style="margin-top:6px;">מחסן האריחים שלך:</div>
+        <div id="inventory" class="inv-wrap"></div>
+
+        <div style="height:10px"></div>
+
+        <!-- ✅ Frame: fits by default, scroll on zoom -->
+        <div id="gridFrame" class="grid-frame">
           <div id="diamondGrid" class="diamond-grid"></div>
         </div>
       </div>
@@ -514,7 +481,10 @@
 
   // ====== GAME CONFIG ======
   const GAME_ID = "chainboard_territory_v1";
-  const W = 20, H = 20, TOTAL = W * H; // 400
+
+  // Board size
+  const W = 20, H = 20;
+  const TOTAL = W * H;
 
   const PALETTE = [
     "#f7941d", "#e7e8e9", "#00C2FF", "#FF4D6D", "#8B5CF6",
@@ -581,13 +551,17 @@
     btnQuizClose: document.getElementById("btnQuizClose"),
   };
 
+  // Apply W/H to CSS grid
+  els.diamondGrid.style.setProperty("--W", String(W));
+  els.diamondGrid.style.setProperty("--H", String(H));
+
   const showModal = (el)=> el.style.display="flex";
   const hideModal = (el)=> el.style.display="none";
   const clearMsg = (el)=> { el.classList.add("hidden"); el.textContent=""; el.classList.remove("good","bad","warn"); };
   const setMsg = (el, text, kind)=> { el.classList.remove("hidden","good","bad","warn"); el.classList.add(kind); el.textContent=text; };
   const flashMap = (text, kind)=> {
     setMsg(els.mapMsg, text, kind);
-    setTimeout(()=>clearMsg(els.mapMsg), 1400);
+    setTimeout(()=>clearMsg(els.mapMsg), 1500);
   };
 
   // ====== STATE ======
@@ -600,10 +574,7 @@
   let boardCache = new Map();
 
   let selectedInvIndex = null;
-
-  // ✅ zoom multiplier (1 = fit. >1 = bigger + scroll inside frame)
-  let zoomFactor = 1;
-
+  let zoom = 1;          // 1 = fit-to-frame
   let openQuizId = null;
 
   // ====== HELPERS ======
@@ -614,10 +585,8 @@
     els.tabTiles.classList.toggle("active", tiles);
     els.tabMap.classList.toggle("active", !tiles);
 
-    // when entering map, ensure fit calculation
-    if(!tiles){
-      requestAnimationFrame(()=>updateGridLayout());
-    }
+    // Ensure board sizes properly when entering map
+    if(!tiles) requestAnimationFrame(()=>updateBoardLayout());
   }
 
   function ensureLoggedIn(){
@@ -697,6 +666,37 @@
       .replace(/[^\u0590-\u05FFa-z0-9]/g,"");
   }
 
+  // ====== FIT BOARD TO FRAME + ZOOM ======
+  function updateBoardLayout(){
+    // Fit board to frame when zoom==1
+    // When zoom>1: scale cell and allow internal scroll
+    const frame = els.gridFrame;
+    if(!frame) return;
+
+    const gapBase = 6;
+    const pad = 24; // approx padding in grid
+    const maxH = frame.clientHeight || Math.min(window.innerHeight * 0.55, 520);
+    const fw = frame.clientWidth || 320;
+
+    const usableW = Math.max(140, fw - pad);
+    const usableH = Math.max(140, maxH - pad);
+
+    const byW = (usableW - gapBase*(W-1)) / W;
+    const byH = (usableH - gapBase*(H-1)) / H;
+
+    let base = Math.floor(Math.min(byW, byH));
+    base = Math.max(12, Math.min(base, 48)); // sensible bounds
+
+    const cell = Math.floor(base * zoom);
+    const gap = Math.max(3, Math.floor(gapBase * (zoom>1 ? 1 : 1)));
+
+    document.documentElement.style.setProperty("--cell", cell + "px");
+    document.documentElement.style.setProperty("--gap", gap + "px");
+
+    // Scroll only when zoom > 1
+    frame.style.overflow = (zoom > 1) ? "auto" : "hidden";
+  }
+
   // ====== QUESTIONS ======
   async function loadQuestions(){
     const res = await fetch("./questions.json", { cache: "no-store" });
@@ -728,48 +728,6 @@
       });
     }
     await batch.commit();
-  }
-
-  // ====== Board layout: fit + optional zoom ======
-  function updateGridLayout(){
-    // Only if map is visible
-    if(els.mapWorld.classList.contains("hidden")) return;
-
-    const frame = els.gridFrame;
-    const grid = els.diamondGrid;
-    if(!frame || !grid) return;
-
-    const styles = getComputedStyle(grid);
-    const gap = parseFloat(styles.getPropertyValue("--gap")) || 4;
-    const pad = parseFloat(styles.getPropertyValue("--pad")) || 8;
-
-    // Available space in frame (a bit of breathing room)
-    const frameW = Math.max(200, frame.clientWidth);
-    const frameH = Math.max(240, Math.min(frame.clientHeight || 0, window.innerHeight * 0.75));
-
-    // Fit cell size calculation:
-    // totalWidth = pad*2 + cell*W + gap*(W-1)
-    const cellByW = (frameW - (pad*2) - (gap*(W-1))) / W;
-    const cellByH = (frameH - (pad*2) - (gap*(H-1))) / H;
-    let baseCell = Math.floor(Math.min(cellByW, cellByH));
-
-    // sensible min/max so it doesn’t break on tiny screens
-    baseCell = Math.max(10, Math.min(baseCell, 60));
-
-    const cell = Math.floor(baseCell * zoomFactor);
-
-    grid.style.setProperty("--cell", `${cell}px`);
-    grid.style.gridTemplateColumns = `repeat(${W}, var(--cell))`;
-    grid.style.gridTemplateRows = `repeat(${H}, var(--cell))`;
-
-    // ✅ Scroll behavior: only when zoomFactor > 1
-    frame.style.overflow = (zoomFactor > 1) ? "auto" : "hidden";
-
-    // When returning to fit, snap to top-left neatly
-    if(zoomFactor <= 1){
-      frame.scrollTop = 0;
-      frame.scrollLeft = 0;
-    }
   }
 
   // ====== RENDER ======
@@ -881,7 +839,8 @@
       }
     }
 
-    updateGridLayout();
+    // after DOM exists, fit
+    requestAnimationFrame(()=>updateBoardLayout());
   }
 
   // ====== QUIZ MODAL ======
@@ -932,7 +891,7 @@
       await runTransaction(db, async (tx)=>{
         const solverSnap = await tx.get(solverRef);
         if(solverSnap.exists()){
-          return; // כבר פתר -> לא נותנים עוד אריח
+          return; // already solved -> no extra tile
         }
 
         const quizSnap = await tx.get(quizRef);
@@ -1079,7 +1038,6 @@
 
     showModal(els.scoresModal);
   }
-
   function renderScoresIfOpen(){
     if(els.scoresModal.style.display==="flex") openScores();
   }
@@ -1151,17 +1109,23 @@
 
   els.btnBackTiles.addEventListener("click", ()=> setWorld("tiles"));
 
-  // ✅ Zoom behavior: default fit. Zoom in/out changes zoomFactor and enables scroll
-  function applyZoom(newZoom){
-    zoomFactor = Math.max(1, Math.min(3.0, newZoom));
-    updateGridLayout();
-  }
-  els.btnZoomIn.addEventListener("click", ()=> applyZoom(zoomFactor + 0.15));
-  els.btnZoomOut.addEventListener("click", ()=> applyZoom(zoomFactor - 0.15));
-  els.btnZoomReset.addEventListener("click", ()=> applyZoom(1));
+  els.btnZoomIn.addEventListener("click", ()=>{
+    zoom = Math.min(3.0, +(zoom + 0.15).toFixed(2));
+    updateBoardLayout();
+  });
+  els.btnZoomOut.addEventListener("click", ()=>{
+    zoom = Math.max(1.0, +(zoom - 0.15).toFixed(2));
+    updateBoardLayout();
+  });
+  els.btnZoomReset.addEventListener("click", ()=>{
+    zoom = 1.0;
+    updateBoardLayout();
+    // optional: scroll back to top-left
+    els.gridFrame.scrollTop = 0;
+    els.gridFrame.scrollLeft = 0;
+  });
 
-  // Re-fit on resize/orientation changes (keeps “fit” behavior at zoom=1)
-  window.addEventListener("resize", ()=>updateGridLayout());
+  window.addEventListener("resize", ()=>updateBoardLayout());
 
   els.btnScores.addEventListener("click", ()=>{ if(!ensureLoggedIn()) return; openScores(); });
   els.btnScoresClose.addEventListener("click", ()=> hideModal(els.scoresModal));
@@ -1204,8 +1168,8 @@
     if(!currentUser) showModal(els.loginModal);
     updateHud();
 
-    // ensure fit on first load (in case user lands on map later)
-    requestAnimationFrame(()=>updateGridLayout());
+    // initial layout (in case you open map quickly)
+    requestAnimationFrame(()=>updateBoardLayout());
   })();
 </script>
 </body>
