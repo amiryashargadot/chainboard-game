@@ -26,7 +26,7 @@
   { "id": "wore_investigator", "q": "לבש חוקר", "a": ["בלש"], "len": 3 },
   { "id": "present_commander_curses", "q": "מפקדת נוכחת יודעת לקלל", "a": ["מכשפה"], "len": 5 }
 
-   { "id": "diamond_ring_prohibitions", "q": "איסורים שמזוהים עם טבעת יהלום", "a": ["אירוסים"], "len": 7 },
+  { "id": "diamond_ring_prohibitions", "q": "איסורים שמזוהים עם טבעת יהלום", "a": ["אירוסים"], "len": 7 },
   { "id": "ran_covers_throne", "q": "רן מכסה על כס המלכות", "a": ["שרלוט"], "len": 6 },
   { "id": "evacuates_place_battery_snake", "q": "מפנה מקום שיש בו סוללה וגם נחש", "a": ["מצדה"], "len": 4 },
   { "id": "burns_limb_trash", "q": "שורפת איבר שזורקים לפח", "a": ["אשפה"], "len": 4 },
