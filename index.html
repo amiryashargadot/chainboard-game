@@ -152,7 +152,7 @@
     .diamond-grid{
       display:grid;
       grid-template-columns:repeat(20, 44px);
-      grid-template-rows:repeat(10, 44px);
+      grid-template-rows:repeat(20, 44px);
       gap:8px;
       padding:12px;
       border-radius:18px;
@@ -739,7 +739,7 @@
   }
 
   function renderBoard(){
-    els.diamondGrid.style.transform = none;
+    els.diamondGrid.style.transform = `scale(${gridScale})`;
     els.diamondGrid.innerHTML = "";
 
     for(let y=0;y<H;y++){
