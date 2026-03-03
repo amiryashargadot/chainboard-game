@@ -148,18 +148,24 @@
       font-size:40px;font-weight:1000;
       color:rgba(0,0,0,.78);
       text-shadow:0 2px 0 rgba(255,255,255,.25);
-      transform: translateY(2px); /* ✅ ברירת מחדל מעט למטה */
+      transform: translateY(2px);
     }
 
-    /* ====== MAP LAYOUT ====== */
+    /* ====== MAP LAYOUT (FIXED) ======
+       ✅ Desktop: board wide LEFT, panel RIGHT
+       ✅ Mobile: panel TOP, board BELOW
+    */
     .mapLayout{
       display:grid;
-      grid-template-columns: minmax(360px, 1fr) minmax(320px, 420px);
+      grid-template-columns: minmax(520px, 1fr) minmax(320px, 420px);
+      grid-template-areas: "board panel";
       gap:12px;
       align-items:start;
     }
+    .mapPanel{grid-area: panel;}
+    .gridFrame{grid-area: board;}
 
-    /* ✅ מסגרת לוח חייבת להיות ריבוע */
+    /* ✅ board frame must be square */
     .gridFrame{
       width:100%;
       aspect-ratio: 1 / 1;
@@ -170,21 +176,26 @@
       padding:10px;
       overflow:hidden; /* fit mode */
       display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height: 240px;
+      align-items:center;        /* ✅ center always */
+      justify-content:center;    /* ✅ center always */
+      min-height: 320px;
     }
     .gridFrame.zoomed{
-      overflow:auto; /* ✅ בזום */
-      align-items:flex-start;
-      justify-content:flex-start;
+      overflow:auto;             /* ✅ zoom adds scroll */
+      align-items:center;        /* ✅ keep centered */
+      justify-content:center;    /* ✅ keep centered */
     }
 
-    .diamondWrap{position:relative;}
+    .diamondWrap{
+      position:relative;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
     .diamondGrid{
       display:grid;
       gap:6px;
-      transform-origin: 0 0;
+      transform-origin: center center; /* ✅ prevents “run to the left” */
     }
     .dcell{
       width:34px;height:34px;
@@ -237,9 +248,14 @@
       .brand{min-width:auto}
       .hud{justify-content:center}
 
-      .mapLayout{grid-template-columns: 1fr;} /* פאנל למעלה, לוח מתחת */
+      .mapLayout{
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "panel"
+          "board";
+      }
 
-      /* ✅ 5 בשורה */
+      /* ✅ 5 tiles per row */
       .tilesGrid{
         grid-template-columns: repeat(5, 1fr);
         grid-auto-rows:78px;
@@ -248,7 +264,7 @@
       }
       .tileBig{
         font-size:28px;
-        transform: translateY(6px); /* ✅ עוד קצת למטה במובייל */
+        transform: translateY(7px); /* ✅ number lower (your request) */
       }
       .tileCard{border-radius:14px;padding:8px}
       .tileSmall{font-size:10px;top:6px;right:6px;padding:2px 6px}
@@ -309,7 +325,16 @@
   <!-- ====== MAP WORLD ====== -->
   <section id="mapWorld" class="section hidden">
     <div class="mapLayout">
-      <div class="card">
+
+      <!-- ✅ BOARD FIRST (wide on desktop) -->
+      <div id="gridFrame" class="gridFrame">
+        <div id="diamondWrap" class="diamondWrap">
+          <div id="diamondGrid" class="diamondGrid"></div>
+        </div>
+      </div>
+
+      <!-- ✅ PANEL SECOND (right on desktop) -->
+      <div class="card mapPanel">
         <h2>מפה</h2>
         <div class="muted">בחר אריח → לחץ על משבצת במפה. (כרגע אין הצבה, רק עיצוב)</div>
 
@@ -331,11 +356,6 @@
         </div>
       </div>
 
-      <div id="gridFrame" class="gridFrame">
-        <div id="diamondWrap" class="diamondWrap">
-          <div id="diamondGrid" class="diamondGrid"></div>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -377,7 +397,6 @@
     els.tabTiles.classList.toggle("active", isTiles);
     els.tabMap.classList.toggle("active", !isTiles);
 
-    // לרענן סקייל אחרי שהאלמנטים “באמת” מוצגים
     requestAnimationFrame(applyBoardScale);
     setTimeout(applyBoardScale, 50);
     setTimeout(applyBoardScale, 150);
@@ -408,7 +427,6 @@
 
   // ====== BUILD BOARD (VISUAL) ======
   function buildBoard(){
-    // ✅ בלי var() בתוך repeat — מגדירים ישירות ב־JS (הכי יציב)
     els.diamondGrid.style.gridTemplateColumns = `repeat(${W}, ${CELL}px)`;
     els.diamondGrid.style.gridTemplateRows    = `repeat(${H}, ${CELL}px)`;
     els.diamondGrid.style.gap = `${GAP}px`;
@@ -429,7 +447,6 @@
   let zoom = 1;
 
   function applyBoardScale(){
-    // אם המפה מוסתרת כרגע, אין טעם לחשב
     if(els.mapWorld.classList.contains("hidden")) return;
 
     const frame = els.gridFrame;
@@ -460,12 +477,6 @@
 
       els.diamondGrid.style.transform = `scale(${zoom})`;
     }
-
-    // ✅ תמיד מחזיר למרכז בפיט (כדי שלא “יברח” לצד במובייל)
-    if(zoom <= 1){
-      frame.scrollTop = 0;
-      frame.scrollLeft = 0;
-    }
   }
 
   els.btnFit.addEventListener("click", ()=>{
@@ -481,17 +492,14 @@
     applyBoardScale();
   });
 
-  // ✅ רענון חכם כשהמסגרת משתנה (מובייל/סיבוב/ריסייז)
+  // ✅ reflow on frame resize (mobile rotate, etc.)
   const ro = new ResizeObserver(()=>applyBoardScale());
   ro.observe(els.gridFrame);
-
   window.addEventListener("resize", applyBoardScale);
 
   // ====== BOOT ======
   buildTiles();
   buildBoard();
-
-  // מתחילים באריחים (כדי שתראה שהם קיימים בדסקטופ)
   setWorld("tiles");
 </script>
 
