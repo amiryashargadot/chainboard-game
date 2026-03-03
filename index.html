@@ -1,506 +1,344 @@
 <!doctype html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>תרתי משמע — סטטי (פריסה בלבד)</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>תרתי משמע</title>
 
-  <style>
-    :root{
-      --bg:#000;
-      --text:#f4f4f4;
-      --muted:rgba(255,255,255,.72);
-      --line:rgba(255,255,255,.12);
-      --orange:#f7941d;
-      --radius:18px;
-      --shadow:0 16px 48px rgba(0,0,0,.55);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Hebrew", sans-serif;
-      background:var(--bg);
-      color:var(--text);
-      overflow-x:hidden;
-    }
+<style>
+:root{
+  --bg:#000;
+  --text:#f4f4f4;
+  --muted:rgba(255,255,255,.7);
+  --line:rgba(255,255,255,.12);
+  --orange:#f7941d;
+  --radius:18px;
+  --shadow:0 16px 48px rgba(0,0,0,.55);
+}
 
-    header{
-      position:sticky;top:0;z-index:20;
-      background:rgba(0,0,0,.92);
-      backdrop-filter: blur(10px);
-      border-bottom:1px solid var(--line);
-      padding:10px 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .brand{display:flex;align-items:center;gap:10px;min-width:240px}
-    .logoBox{
-      width:34px;height:34px;border-radius:10px;
-      background:linear-gradient(180deg,#ffb55a,var(--orange));
-      box-shadow:0 12px 26px rgba(0,0,0,.35);
-      position:relative;
-    }
-    .logoBox:after{
-      content:"";position:absolute;inset:7px;border-radius:6px;
-      border:2px solid rgba(0,0,0,.45);
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,.15);
-    }
-    .brandTitle{display:flex;flex-direction:column;line-height:1.05}
-    .brandTitle .small{font-weight:800;color:rgba(255,255,255,.75);font-size:12px}
-    .brandTitle .big{font-weight:1000;font-size:22px;letter-spacing:.2px}
-    .brandTitle .big span{color:var(--orange)}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:var(--bg);
+  color:var(--text);
+  overflow-x:hidden;
+}
 
-    .hud{
-      display:flex;align-items:center;gap:10px;
-      flex-wrap:wrap;justify-content:flex-end;
-      flex:1;min-width:260px;
-    }
-    .pill{
-      display:flex;align-items:center;gap:8px;
-      padding:7px 10px;border-radius:999px;
-      background:rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.16);
-      color:rgba(255,255,255,.82);
-      font-size:12px;
-      white-space:nowrap;
-      user-select:none;
-    }
-    .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 0 0 3px rgba(255,255,255,.12)}
-    .btn{
-      cursor:pointer;
-      padding:9px 12px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(255,255,255,.06);
-      color:rgba(255,255,255,.88);
-      font-weight:900;font-size:13px;
-      box-shadow:0 12px 26px rgba(0,0,0,.35);
-      user-select:none;white-space:nowrap;
-      transition:transform .08s ease, background .15s ease, border-color .15s ease;
-    }
-    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.28)}
-    .btn:active{transform:translateY(0px) scale(.99)}
-    .btn.orange{border-color:rgba(247,148,29,.55);background:rgba(247,148,29,.14);color:#ffe6c5}
-    .btn.danger{border-color:rgba(251,113,133,.55);background:rgba(251,113,133,.14);color:#ffe0e6}
+/* ================= HEADER ================= */
 
-    main{min-height: calc(100svh - 58px - 74px);padding-bottom: 80px;}
-    .section{padding:14px 12px;border-bottom:1px solid rgba(255,255,255,.08);}
-    .card{
-      background:rgba(255,255,255,.045);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:12px;
-    }
-    .card h2{margin:0 0 8px 0;font-size:14px;color:rgba(255,255,255,.92);}
-    .muted{color:var(--muted);font-size:12.5px;line-height:1.35}
-    .hidden{display:none !important;}
+header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:64px;
+  z-index:50;
+  background:#000;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 16px;
+}
 
-    /* ====== TILES ====== */
-    .tilesHeader{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;}
-    .tilesHeader .card{flex:1 1 360px}
-    .tilesWrap{
-      margin-top:12px;
-      border-radius:var(--radius);
-      overflow:hidden;
-      border:1px solid rgba(0,0,0,.20);
-      background:rgba(255,255,255,.04);
-    }
-    .tilesTop{
-      height:18px;
-      background:repeating-linear-gradient(90deg, rgba(0,0,0,.92) 0 18px, rgba(0,0,0,.30) 18px 26px);
-      border-bottom:1px solid rgba(255,255,255,.10);
-    }
-    .tilesGrid{
-      display:grid;
-      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      grid-auto-rows:110px;
-      gap:10px;
-      padding:12px;
-      max-height:420px;
-      overflow:auto;
-    }
-    .tileCard{
-      border-radius:16px;
-      border:2px solid rgba(255,255,255,.10);
-      background:linear-gradient(180deg, rgba(247,148,29,.92), rgba(240,125,0,.92));
-      box-shadow:0 12px 26px rgba(0,0,0,.35);
-      position:relative;
-      cursor:pointer;
-      user-select:none;
-      overflow:hidden;
-      padding:10px;
-    }
-    .tileSmall{
-      position:absolute;top:8px;right:8px;
-      font-size:11px;color:rgba(0,0,0,.78);
-      background:rgba(255,255,255,.65);
-      border:1px solid rgba(0,0,0,.12);
-      padding:3px 7px;border-radius:999px;
-      backdrop-filter: blur(8px);
-    }
-    .tileBig{
-      height:100%;
-      display:flex;align-items:center;justify-content:center;
-      font-size:40px;font-weight:1000;
-      color:rgba(0,0,0,.78);
-      text-shadow:0 2px 0 rgba(255,255,255,.25);
-      transform: translateY(2px);
-    }
+.brand{
+  font-weight:900;
+  font-size:22px;
+}
+.brand span{color:var(--orange)}
 
-    /* ====== MAP LAYOUT (FIXED) ======
-       ✅ Desktop: board wide LEFT, panel RIGHT
-       ✅ Mobile: panel TOP, board BELOW
-    */
-    .mapLayout{
-      display:grid;
-      grid-template-columns: minmax(520px, 1fr) minmax(320px, 420px);
-      grid-template-areas: "board panel";
-      gap:12px;
-      align-items:start;
-    }
-    .mapPanel{grid-area: panel;}
-    .gridFrame{grid-area: board;}
+.hud{
+  display:flex;
+  gap:10px;
+}
 
-    /* ✅ board frame must be square */
-    .gridFrame{
-      width:100%;
-      aspect-ratio: 1 / 1;
-      border-radius:var(--radius);
-      background:rgba(255,255,255,.06);
-      border:1px solid rgba(255,255,255,.10);
-      box-shadow:var(--shadow);
-      padding:10px;
-      overflow:hidden; /* fit mode */
-      display:flex;
-      align-items:center;        /* ✅ center always */
-      justify-content:center;    /* ✅ center always */
-      min-height: 320px;
-    }
-    .gridFrame.zoomed{
-      overflow:auto;             /* ✅ zoom adds scroll */
-      align-items:center;        /* ✅ keep centered */
-      justify-content:center;    /* ✅ keep centered */
-    }
+.pill{
+  padding:6px 12px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.2);
+  font-size:12px;
+}
 
-    .diamondWrap{
-      position:relative;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-    }
-    .diamondGrid{
-      display:grid;
-      gap:6px;
-      transform-origin: center center; /* ✅ prevents “run to the left” */
-    }
-    .dcell{
-      width:34px;height:34px;
-      border-radius:12px;
-      background:rgba(255,255,255,.05);
-      border:1px solid rgba(255,255,255,.08);
-    }
+/* ================= MAIN ================= */
 
-    /* bottom tabs */
-    .tabs{
-      position:fixed;left:0;right:0;bottom:56px;z-index:30;
-      padding:10px 12px;
-      background:rgba(0,0,0,.92);
-      border-top:1px solid rgba(255,255,255,.10);
-      backdrop-filter: blur(10px);
-      display:flex;justify-content:center;gap:10px;
-    }
-    .tab{
-      flex:1;max-width:260px;
-      text-align:center;
-      padding:12px 12px;
-      border-radius:16px;
-      cursor:pointer;
-      user-select:none;
-      border:1px solid rgba(255,255,255,.18);
-      background:rgba(255,255,255,.04);
-      color:rgba(255,255,255,.86);
-      font-weight:950;
-    }
-    .tab.active{
-      background:rgba(255,255,255,.12);
-      border-color:rgba(255,255,255,.30);
-      box-shadow:0 12px 28px rgba(0,0,0,.35);
-    }
+main{
+  position:relative;
+  padding-top:80px;
+  padding-bottom:140px;
+  min-height:100svh;
+}
 
-    footer{
-      position:fixed;left:0;right:0;bottom:0;z-index:31;
-      background:rgba(0,0,0,.92);
-      border-top:1px solid rgba(255,255,255,.10);
-      backdrop-filter: blur(10px);
-      padding:10px 12px;
-      display:flex;justify-content:center;
-    }
-    footer a{color:var(--orange);font-weight:950;text-decoration:none}
-    footer a:hover{text-decoration:underline}
+/* ================= MAP LAYOUT ================= */
 
-    /* ✅ MOBILE */
-    @media (max-width: 900px){
-      header{justify-content:center}
-      .brand{min-width:auto}
-      .hud{justify-content:center}
+.mapLayout{
+  display:grid;
+  grid-template-columns: 1fr 380px;
+  gap:16px;
+  padding:16px;
+  align-items:start;
+}
 
-      .mapLayout{
-        grid-template-columns: 1fr;
-        grid-template-areas:
-          "panel"
-          "board";
-      }
+.mapPanel{
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:16px;
+  box-shadow:var(--shadow);
+}
 
-      /* ✅ 5 tiles per row */
-      .tilesGrid{
-        grid-template-columns: repeat(5, 1fr);
-        grid-auto-rows:78px;
-        gap:8px;
-        max-height:360px;
-      }
-      .tileBig{
-        font-size:28px;
-        transform: translateY(7px); /* ✅ number lower (your request) */
-      }
-      .tileCard{border-radius:14px;padding:8px}
-      .tileSmall{font-size:10px;top:6px;right:6px;padding:2px 6px}
-    }
-  </style>
+.gridFrame{
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  aspect-ratio:1/1;
+  max-height:calc(100svh - 240px);
+}
+
+.gridFrame.zoomed{
+  overflow:auto;
+}
+
+.diamondGrid{
+  display:grid;
+  gap:6px;
+  transform-origin:center center;
+}
+
+.dcell{
+  width:32px;
+  height:32px;
+  border-radius:10px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+}
+
+/* ================= TILES ================= */
+
+.tilesGrid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+  gap:12px;
+  padding:16px;
+}
+
+.tile{
+  background:linear-gradient(180deg,#ffa03b,#e87b00);
+  border-radius:16px;
+  padding:12px;
+  position:relative;
+  height:110px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:36px;
+  font-weight:900;
+  color:#000;
+}
+
+.tile small{
+  position:absolute;
+  top:8px;
+  right:8px;
+  background:#fff;
+  border-radius:999px;
+  padding:4px 8px;
+  font-size:10px;
+}
+
+/* ================= BOTTOM TABS ================= */
+
+.tabs{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  height:70px;
+  background:#000;
+  border-top:1px solid var(--line);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:20px;
+  z-index:40;
+}
+
+.tab{
+  padding:12px 24px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.2);
+  cursor:pointer;
+}
+
+.tab.active{
+  background:rgba(255,255,255,.1);
+}
+
+/* ================= FOOTER ================= */
+
+footer{
+  position:fixed;
+  bottom:70px;
+  left:0;
+  right:0;
+  height:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#000;
+  border-top:1px solid var(--line);
+  font-size:14px;
+  color:var(--orange);
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:900px){
+
+  .mapLayout{
+    grid-template-columns:1fr;
+  }
+
+  .tilesGrid{
+    grid-template-columns:repeat(5,1fr);
+  }
+
+  .tile{
+    height:80px;
+    font-size:26px;
+  }
+
+  .tile{
+    align-items:center;
+    justify-content:center;
+  }
+
+  .tile{
+    transform:translateY(6px);
+  }
+}
+
+.hidden{display:none}
+</style>
 </head>
 
 <body>
 
 <header>
-  <div class="brand">
-    <div class="logoBox" aria-hidden="true"></div>
-    <div class="brandTitle">
-      <div class="small">תוכן עניינים</div>
-      <div class="big">תרתי <span>משמע</span></div>
-    </div>
-  </div>
-
+  <div class="brand">תרתי <span>משמע</span></div>
   <div class="hud">
-    <div class="pill"><span class="dot"></span><span>לא מחובר</span></div>
-    <div class="pill">🧩 <span>0</span></div>
-    <div class="pill">📐 <span>0.0</span>%</div>
-    <button class="btn secondary" type="button">לוח נקודות</button>
-    <button class="btn orange" type="button">הצע חידה</button>
-    <button class="btn danger" type="button">יציאה</button>
+    <div class="pill">🧩 0</div>
+    <div class="pill">📐 0%</div>
   </div>
 </header>
 
 <main>
 
-  <!-- ====== TILES WORLD ====== -->
-  <section id="tilesWorld" class="section">
-    <div class="tilesHeader">
-      <div class="card">
-        <h2>אריחים</h2>
-        <div class="muted">(סטטי) כאן יהיו חידות. כרגע זה רק עיצוב.</div>
-      </div>
+<section id="mapSection">
 
-      <div class="card">
-        <h2>כללי הצבה במפה</h2>
-        <div class="muted">(סטטי) רק כדי לבדוק פריסה. אחרי שננעלים על העיצוב — נחזיר את כל הלוגיקה.</div>
-      </div>
-    </div>
+<div class="mapLayout">
 
-    <div class="tilesWrap">
-      <div class="tilesTop" aria-hidden="true"></div>
-      <div id="tilesGrid" class="tilesGrid"></div>
-    </div>
+  <div class="gridFrame" id="gridFrame">
+    <div class="diamondGrid" id="grid"></div>
+  </div>
 
-    <div style="height:12px"></div>
+  <div class="mapPanel">
+    <h3>מפה</h3>
+    <p class="muted">בחר אריח → לחץ על משבצת</p>
+    <button onclick="fit()">איפוס</button>
+    <button onclick="zoomIn()">+</button>
+    <button onclick="zoomOut()">-</button>
+  </div>
 
-    <div class="card">
-      <h2>מחסן האריחים שלך</h2>
-      <div class="muted">(סטטי) כאן יהיו אריחים שבאמת צברת.</div>
-    </div>
-  </section>
+</div>
 
-  <!-- ====== MAP WORLD ====== -->
-  <section id="mapWorld" class="section hidden">
-    <div class="mapLayout">
+</section>
 
-      <!-- ✅ BOARD FIRST (wide on desktop) -->
-      <div id="gridFrame" class="gridFrame">
-        <div id="diamondWrap" class="diamondWrap">
-          <div id="diamondGrid" class="diamondGrid"></div>
-        </div>
-      </div>
-
-      <!-- ✅ PANEL SECOND (right on desktop) -->
-      <div class="card mapPanel">
-        <h2>מפה</h2>
-        <div class="muted">בחר אריח → לחץ על משבצת במפה. (כרגע אין הצבה, רק עיצוב)</div>
-
-        <div style="height:10px"></div>
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-          <button class="btn" id="btnFit" type="button">איפוס (התאמה למסגרת)</button>
-          <button class="btn" id="btnZoomOut" type="button">– זום</button>
-          <button class="btn" id="btnZoomIn" type="button">+ זום</button>
-        </div>
-
-        <div style="height:12px"></div>
-
-        <div class="muted">מחסן האריחים שלך:</div>
-        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">
-          <div style="width:40px;height:40px;border-radius:10px;background:rgba(0,194,255,.9);border:2px solid rgba(255,255,255,.12)"></div>
-          <div style="width:40px;height:40px;border-radius:10px;background:rgba(231,232,233,.9);border:2px solid rgba(255,255,255,.12)"></div>
-          <div style="width:40px;height:40px;border-radius:10px;background:rgba(247,148,29,.9);border:2px solid rgba(255,255,255,.12)"></div>
-        </div>
-      </div>
-
-    </div>
-  </section>
+<section id="tilesSection" class="hidden">
+  <div class="tilesGrid" id="tiles"></div>
+</section>
 
 </main>
 
+<footer>להכניס עניין לתוכן</footer>
+
 <div class="tabs">
-  <div class="tab active" id="tabTiles">אריחים</div>
-  <div class="tab" id="tabMap">מפה</div>
+  <div class="tab active" onclick="showMap()">מפה</div>
+  <div class="tab" onclick="showTiles()">אריחים</div>
 </div>
 
-<footer>
-  <a href="#" onclick="return false;">להכניס עניין לתוכן</a>
-</footer>
-
 <script>
-  // ====== CONFIG ======
-  const W = 20, H = 20;
-  const CELL = 34, GAP = 6;
 
-  const els = {
-    tilesWorld: document.getElementById("tilesWorld"),
-    mapWorld: document.getElementById("mapWorld"),
-    tabTiles: document.getElementById("tabTiles"),
-    tabMap: document.getElementById("tabMap"),
-    tilesGrid: document.getElementById("tilesGrid"),
-    gridFrame: document.getElementById("gridFrame"),
-    diamondWrap: document.getElementById("diamondWrap"),
-    diamondGrid: document.getElementById("diamondGrid"),
-    btnFit: document.getElementById("btnFit"),
-    btnZoomIn: document.getElementById("btnZoomIn"),
-    btnZoomOut: document.getElementById("btnZoomOut"),
-  };
+const W=20;
+const H=20;
+const CELL=32;
+const GAP=6;
 
-  // ====== WORLD SWITCH ======
-  function setWorld(which){
-    const isTiles = which === "tiles";
-    els.tilesWorld.classList.toggle("hidden", !isTiles);
-    els.mapWorld.classList.toggle("hidden", isTiles);
-    els.tabTiles.classList.toggle("active", isTiles);
-    els.tabMap.classList.toggle("active", !isTiles);
+const grid=document.getElementById("grid");
+const gridFrame=document.getElementById("gridFrame");
 
-    requestAnimationFrame(applyBoardScale);
-    setTimeout(applyBoardScale, 50);
-    setTimeout(applyBoardScale, 150);
+let zoom=1;
+
+function buildGrid(){
+  grid.style.gridTemplateColumns=`repeat(${W},${CELL}px)`;
+  grid.innerHTML="";
+  for(let i=0;i<W*H;i++){
+    const c=document.createElement("div");
+    c.className="dcell";
+    grid.appendChild(c);
   }
-  els.tabTiles.addEventListener("click", ()=>setWorld("tiles"));
-  els.tabMap.addEventListener("click", ()=>setWorld("map"));
+}
 
-  // ====== BUILD TILES (VISUAL) ======
-  function buildTiles(){
-    els.tilesGrid.innerHTML = "";
-    for(let i=0;i<40;i++){
-      const card = document.createElement("div");
-      card.className = "tileCard";
+function applyScale(){
+  const natural=(W*CELL)+(W-1)*GAP;
+  const rect=gridFrame.getBoundingClientRect();
+  const scale=Math.min(
+    (rect.width-20)/natural,
+    (rect.height-20)/natural
+  );
 
-      const small = document.createElement("div");
-      small.className = "tileSmall";
-      small.textContent = "פתרו כבר";
-      card.appendChild(small);
-
-      const big = document.createElement("div");
-      big.className = "tileBig";
-      big.textContent = String(Math.floor(Math.random()*10));
-      card.appendChild(big);
-
-      els.tilesGrid.appendChild(card);
-    }
+  if(zoom<=1){
+    grid.style.transform=`scale(${scale})`;
+  }else{
+    grid.style.transform=`scale(${zoom})`;
   }
+}
 
-  // ====== BUILD BOARD (VISUAL) ======
-  function buildBoard(){
-    els.diamondGrid.style.gridTemplateColumns = `repeat(${W}, ${CELL}px)`;
-    els.diamondGrid.style.gridTemplateRows    = `repeat(${H}, ${CELL}px)`;
-    els.diamondGrid.style.gap = `${GAP}px`;
+function fit(){zoom=1;applyScale()}
+function zoomIn(){zoom+=0.2;applyScale()}
+function zoomOut(){zoom=Math.max(1,zoom-0.2);applyScale()}
 
-    els.diamondGrid.innerHTML = "";
-    for(let y=0;y<H;y++){
-      for(let x=0;x<W;x++){
-        const c = document.createElement("div");
-        c.className = "dcell";
-        c.style.width = `${CELL}px`;
-        c.style.height = `${CELL}px`;
-        els.diamondGrid.appendChild(c);
-      }
-    }
+function showMap(){
+  document.getElementById("mapSection").classList.remove("hidden");
+  document.getElementById("tilesSection").classList.add("hidden");
+}
+
+function showTiles(){
+  document.getElementById("tilesSection").classList.remove("hidden");
+  document.getElementById("mapSection").classList.add("hidden");
+}
+
+function buildTiles(){
+  const wrap=document.getElementById("tiles");
+  wrap.innerHTML="";
+  for(let i=0;i<40;i++){
+    const t=document.createElement("div");
+    t.className="tile";
+    t.innerHTML=`<small>פתרו כבר</small>${Math.floor(Math.random()*10)}`;
+    wrap.appendChild(t);
   }
+}
 
-  // ====== FIT / ZOOM ======
-  let zoom = 1;
+buildGrid();
+buildTiles();
+applyScale();
+window.addEventListener("resize",applyScale);
 
-  function applyBoardScale(){
-    if(els.mapWorld.classList.contains("hidden")) return;
-
-    const frame = els.gridFrame;
-    const wrap  = els.diamondWrap;
-
-    const naturalW = (W * CELL) + ((W-1) * GAP);
-    const naturalH = (H * CELL) + ((H-1) * GAP);
-
-    const rect = frame.getBoundingClientRect();
-    const pad = 10 * 2;
-    const availW = Math.max(50, rect.width  - pad);
-    const availH = Math.max(50, rect.height - pad);
-
-    if(zoom <= 1){
-      frame.classList.remove("zoomed");
-
-      const s = Math.min(availW / naturalW, availH / naturalH);
-
-      wrap.style.width  = (naturalW * s) + "px";
-      wrap.style.height = (naturalH * s) + "px";
-
-      els.diamondGrid.style.transform = `scale(${s})`;
-    }else{
-      frame.classList.add("zoomed");
-
-      wrap.style.width  = (naturalW * zoom) + "px";
-      wrap.style.height = (naturalH * zoom) + "px";
-
-      els.diamondGrid.style.transform = `scale(${zoom})`;
-    }
-  }
-
-  els.btnFit.addEventListener("click", ()=>{
-    zoom = 1;
-    applyBoardScale();
-  });
-  els.btnZoomIn.addEventListener("click", ()=>{
-    zoom = Math.min(3, Math.round((zoom + 0.2) * 10) / 10);
-    applyBoardScale();
-  });
-  els.btnZoomOut.addEventListener("click", ()=>{
-    zoom = Math.max(1, Math.round((zoom - 0.2) * 10) / 10);
-    applyBoardScale();
-  });
-
-  // ✅ reflow on frame resize (mobile rotate, etc.)
-  const ro = new ResizeObserver(()=>applyBoardScale());
-  ro.observe(els.gridFrame);
-  window.addEventListener("resize", applyBoardScale);
-
-  // ====== BOOT ======
-  buildTiles();
-  buildBoard();
-  setWorld("tiles");
 </script>
 
 </body>
