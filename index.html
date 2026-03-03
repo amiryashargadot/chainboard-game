@@ -9,33 +9,35 @@
     :root{
       --bg:#000000;
       --stage:#f7941d;        /* כתום */
-      --accent:#e7e8e9;       /* אפור-בהיר במקום ירוק */
+      --accent:#e7e8e9;       /* אפור-לבן (במקום הירוק) */
       --text:#F5F5F5;
 
       --shadow: 0 14px 40px rgba(0,0,0,.45);
       --radius:18px;
       --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Hebrew", sans-serif;
     }
+
     *{box-sizing:border-box}
     body{margin:0;font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden;}
+    a{color:inherit}
 
-    /* ===== Header ===== */
     header{
       position:sticky;top:0;z-index:10;
       display:flex;align-items:center;justify-content:space-between;gap:12px;
       padding:10px 14px;background:rgba(0,0,0,.92);
       border-bottom:1px solid rgba(231,232,233,.25);backdrop-filter: blur(10px);
+      flex-wrap:wrap; /* ✅ מונע "טור בצד" */
     }
-    .brand{display:flex;align-items:center;gap:12px;min-width:240px;}
+
+    .brand{display:flex;align-items:center;gap:12px;min-width:220px;}
     .brand img{height:34px;width:auto;display:block;filter: drop-shadow(0 8px 18px rgba(0,0,0,.35));}
     .brand .title{font-weight:950;color:rgba(255,255,255,.9);font-size:14px;letter-spacing:.2px}
 
     .hud{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;          /* ✅ תמיד נשאר שורה-שורה ולא “טור” */
-      justify-content:flex-end;
+      display:flex;align-items:center;gap:10px;
+      flex-wrap:wrap;justify-content:flex-end;
+      flex: 1 1 auto;
+      min-width: 260px;
     }
 
     .pill{
@@ -60,10 +62,8 @@
     .btn.secondary{background:rgba(255,255,255,.04);color:var(--text);border-color:rgba(255,255,255,.14);font-weight:650;}
     .btn.danger{border-color:rgba(251,113,133,.5);background:rgba(251,113,133,.12);color:#ffd6dd;}
 
-    /* main height (header + tabs + footer) */
     main{min-height: calc(100svh - 58px - 74px - 56px);}
 
-    /* ===== Tiles area stage ===== */
     .stage{
       background: linear-gradient(180deg, #ffad45 0%, var(--stage) 45%, #f07d00 100%);
       position:relative;padding-bottom:16px;
@@ -77,8 +77,8 @@
     }
 
     .section{padding:14px 14px 10px;position:relative;z-index:1;}
-    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start;}
 
+    .row{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;}
     .card{
       background:rgba(0,0,0,.72);
       border:1px solid rgba(255,255,255,.10);
@@ -86,74 +86,66 @@
       box-shadow:var(--shadow);
       padding:12px;
     }
-    .card h2{margin:0 0 10px 0;font-size:14px;color:var(--accent);letter-spacing:.3px;}
+    .card h2{margin:0 0 8px 0;font-size:14px;color:var(--accent);letter-spacing:.3px;}
     .muted{color:rgba(255,255,255,.78);font-size:12px;line-height:1.35;}
 
-    /* ===== Quiz cards grid ===== */
+    /* ✅ כרטיסים: לא "מסגרות ענקיות" – מינימום גובה */
+    .card.compact{padding:12px}
+    .card.compact .muted{margin:0}
+
+    /* Cards grid */
     .cards-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid rgba(0,0,0,.18);background:rgba(0,0,0,.10);}
     .cards-top{
       height:18px;background:repeating-linear-gradient(90deg, rgba(0,0,0,.92) 0 18px, rgba(0,0,0,.25) 18px 26px);
       border-bottom:1px solid rgba(255,255,255,.10);box-shadow:inset 0 2px 0 rgba(255,255,255,.08);
     }
+
     .cards-grid{
       display:grid;
       grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      gap: 12px;
-      padding: 14px;
-      max-height: 460px;
+      grid-auto-rows: 110px;
+      gap: 10px;
+      padding: 12px;
+      max-height: 420px;
       overflow:auto;
     }
+
     .quiz-card{
-      border-radius:18px;
+      border-radius:16px;
       box-shadow:0 10px 25px rgba(0,0,0,.35);
-      padding:12px;position:relative;cursor:pointer;user-select:none;
+      padding:10px;position:relative;cursor:pointer;user-select:none;
       transition:transform .12s ease, filter .12s ease, opacity .12s ease;
       border:2px solid rgba(255,255,255,.10);
       overflow:hidden;
-      height:120px;
     }
     .quiz-card:hover{transform:translateY(-2px);filter:brightness(1.03);}
-    .quiz-card.solved{filter: grayscale(1);opacity:.45;cursor:not-allowed;}
+    .quiz-card.solved{
+      filter: grayscale(1);
+      opacity: .45;
+      cursor: not-allowed;
+    }
     .qc-small{
-      position:absolute;top:10px;right:10px;
+      position:absolute;top:8px;right:8px;
       font-size:11px;color:rgba(0,0,0,.75);
-      background:rgba(255,255,255,.55);border:1px solid rgba(0,0,0,.12);
+      background:rgba(255,255,255,.60);border:1px solid rgba(0,0,0,.12);
       padding:3px 7px;border-radius:999px;
       backdrop-filter: blur(8px);
     }
     .qc-big{
       height:100%;
       display:flex;align-items:center;justify-content:center;
-      font-size:44px;font-weight:1000;color:rgba(0,0,0,.78);
+      font-size:40px;font-weight:1000;color:rgba(0,0,0,.78);
       text-shadow:0 2px 0 rgba(255,255,255,.25);
     }
 
-    /* ✅ מובייל: 5 כרטיסיות בשורה */
-    @media (max-width: 600px){
-      .cards-grid{
-        grid-template-columns: repeat(5, 1fr);
-        gap:10px;
-        padding:12px;
-        max-height: 340px;
-      }
-      .quiz-card{
-        height:68px;
-        padding:8px;
-        border-radius:14px;
-      }
-      .qc-small{top:6px;right:6px;font-size:9px;padding:2px 6px;}
-      .qc-big{font-size:22px;}
-    }
-
-    /* ===== Inventory ===== */
+    /* Inventory tiles */
     .inv-wrap{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
     .diamond{
       width:44px;height:44px;
       border-radius:10px;
       border:2px solid rgba(255,255,255,.14);
       box-shadow:0 10px 22px rgba(0,0,0,.25);
-      cursor:pointer;
-      position:relative;
+      cursor:pointer;position:relative;
     }
     .diamond.selected{
       outline:3px solid rgba(231,232,233,.55);
@@ -164,48 +156,53 @@
       box-shadow: inset 0 0 0 2px rgba(0,0,0,.14);
     }
 
-    /* ===== Map area ===== */
+    /* ===== MAP LAYOUT ===== */
     .board-stage{
       background: linear-gradient(180deg, rgba(0,0,0,.95) 0%, rgba(0,0,0,.88) 100%);
       padding-bottom:18px;border-top:1px solid rgba(255,255,255,.08);
     }
-    .board-wrap{display:flex;flex-direction:column;gap:10px;}
-    .board-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 
-    /* ✅ דסקטופ: שני טורים (טקסט + לוח) */
-    #mapWorld .row{flex-wrap:nowrap; align-items:stretch;}
-    #mapWorld .board-wrap{flex:0 0 420px; min-width:340px;}
-    #mapWorld .grid-container{flex:1 1 auto; min-width:320px; display:flex;}
+    /* ✅ Desktop: side-by-side. Mobile: stack */
+    .map-layout{
+      display:grid;
+      gap:12px;
+      grid-template-columns: minmax(320px, 420px) minmax(320px, 1fr);
+      align-items:start;
+    }
 
-    /* ✅ מסגרת ריבועית תמיד */
+    /* ✅ הלוח חייב להיות ריבוע */
     .grid-frame{
       width:100%;
-      aspect-ratio: 1 / 1; /* תמיד ריבוע */
+      aspect-ratio: 1 / 1;
       border-radius:18px;
       background:rgba(255,255,255,.06);
       border:1px solid rgba(255,255,255,.10);
       box-shadow:var(--shadow);
       padding:10px;
-      overflow:hidden;      /* fit -> אין גלילה */
+      overflow:hidden; /* fit mode */
       display:flex;
       align-items:center;
       justify-content:center;
     }
     .grid-frame.zoomed{
-      overflow:auto;         /* בזום -> יש גלילה */
+      overflow:auto; /* ✅ בזום – גלילה בפנים */
       align-items:flex-start;
       justify-content:flex-start;
     }
 
-    /* הלוח עצמו */
+    /* ✅ עטיפה שמקבלת את המידות של הסקייל */
+    .diamond-wrap{position:relative;}
+
     .diamond-grid{
       display:grid;
-      gap:8px;
+      grid-template-columns:repeat(var(--W), var(--cell));
+      grid-template-rows:repeat(var(--H), var(--cell));
+      gap:var(--gap);
       transform-origin: 0 0;
-      will-change: transform;
     }
+
     .dcell{
-      width:44px;height:44px;
+      width:var(--cell);height:var(--cell);
       border-radius:12px;
       background:rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.08);
@@ -214,15 +211,19 @@
       overflow:hidden;
     }
     .dcell:hover{background:rgba(255,255,255,.07);}
-    .dcell .fill{position:absolute;inset:0;border-radius:12px;opacity:1;}
+
+    .dcell .fill{
+      position:absolute;inset:0;border-radius:12px;
+    }
     .dcell .name{
       position:absolute;inset:0;
       display:flex;align-items:center;justify-content:center;
       font-size:10px;font-weight:900;
       color:rgba(255,255,255,.92);
       text-shadow: 0 2px 8px rgba(0,0,0,.65);
-      padding:4px;text-align:center;pointer-events:none;
-      opacity:.9;
+      padding:4px;
+      text-align:center;
+      pointer-events:none;
     }
 
     .msg{padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:13px;line-height:1.35;}
@@ -231,7 +232,6 @@
     .msg.warn{border-color: rgba(251,191,36,.45); background: rgba(251,191,36,.12); color:#fff7d1;}
     .hidden{display:none !important;}
 
-    /* ===== Tabs + Footer ===== */
     .tabs{
       position:sticky;bottom:56px;z-index:10;padding:10px 12px;
       background:rgba(0,0,0,.92);border-top:1px solid rgba(231,232,233,.25);
@@ -259,7 +259,7 @@
     }
     footer a:hover{text-decoration:underline;}
 
-    /* ===== Modals ===== */
+    /* Modals */
     .modal-backdrop{
       position:fixed;inset:0;background:rgba(0,0,0,.65);
       display:none;align-items:center;justify-content:center;padding:14px;z-index:100;
@@ -280,19 +280,22 @@
     .help{font-size:12px;color:rgba(255,255,255,.70);line-height:1.35;}
     .modal .footer{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding-top:12px;}
 
-    /* ===== responsive header tweaks ===== */
+    /* ✅ MOBILE FIXES */
     @media (max-width: 900px){
-      header{flex-wrap:wrap; align-items:flex-start;}
-      .brand{min-width:unset;}
-      .hud{justify-content:flex-start;}
-    }
-
-    /* ✅ מובייל: map יורד מתחת */
-    @media (max-width: 900px){
-      #mapWorld .row{flex-wrap:wrap;}
-      #mapWorld .board-wrap{flex:1 1 100%; width:100%;}
-      #mapWorld .grid-container{flex:1 1 100%; width:100%;}
-      .grid-frame{padding:8px;}
+      header{justify-content:center}
+      .brand{min-width:auto}
+      .hud{justify-content:center}
+      .map-layout{grid-template-columns: 1fr;}
+      .cards-grid{
+        grid-template-columns: repeat(5, 1fr); /* ✅ 5 בשורה */
+        grid-auto-rows: 78px;
+        gap:8px;
+        max-height: 360px;
+      }
+      .qc-big{font-size:28px;}
+      .quiz-card{border-radius:14px;padding:8px;}
+      .qc-small{font-size:10px;top:6px;right:6px;padding:2px 6px;}
+      .diamond{width:38px;height:38px;}
     }
   </style>
 </head>
@@ -319,21 +322,20 @@
   <section id="tilesWorld" class="stage">
     <div class="section">
       <div class="row">
-        <div class="card" style="flex:1 1 420px;">
+        <div class="card compact" style="flex:1 1 420px;">
           <h2>אריחים</h2>
           <div class="muted">
-            על כל חידה שתפתרו תקבלו אריח צבעוני למחסן.
-            אפשר להציע חידות חדשות בכפתור למעלה.
+            על כל חידה שתפתרו תקבלו אריח צבעוני למחסן. אפשר להציע חידות בכפתור למעלה.
           </div>
         </div>
 
-        <div class="card" style="flex:1 1 320px;">
+        <div class="card compact" style="flex:1 1 320px;">
           <h2>כללי הצבה במפה</h2>
           <div class="muted">
             • האריח הראשון שלך חייב להיות מבודד (לא נוגע בשום אריח אחר).<br/>
             • מכאן והלאה — מותר להציב רק אם האריח נוגע באריחים שלך (צמוד צד).<br/>
             • צבע השטח שלך הוא ממוצע משוקלל של כל האריחים שהנחת.<br/>
-            • כל אריח שהנחת = נקודה אחת + אחוז תפיסה במפה.
+            • כל אריח שמציבים = נקודה אחת.
           </div>
         </div>
       </div>
@@ -347,7 +349,7 @@
 
       <div style="height:14px"></div>
 
-      <div class="card">
+      <div class="card compact">
         <h2>מחסן האריחים שלך</h2>
         <div id="inventoryTilesPage" class="inv-wrap"></div>
       </div>
@@ -357,27 +359,30 @@
   <!-- מפה -->
   <section id="mapWorld" class="board-stage hidden">
     <div class="section">
-      <div class="row">
-        <div class="card board-wrap">
+      <div class="map-layout">
+        <!-- שמאל: טקסט / כפתורים -->
+        <div class="card" style="width:100%;">
           <h2>מפה</h2>
           <div class="muted">בחר אריח מהמחסן → לחץ על משבצת במפה כדי להציב.</div>
 
+          <div style="height:10px"></div>
           <div id="mapMsg" class="msg warn hidden"></div>
 
-          <div class="board-actions">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;">
             <button class="btn secondary" id="btnBackTiles">חזור לאריחים</button>
-            <button class="btn secondary" id="btnFit">התאם למסגרת</button>
-            <button class="btn secondary" id="btnZoomOut">– זום אאוט</button>
-            <button class="btn secondary" id="btnZoomIn">+ זום אין</button>
+            <button class="btn secondary" id="btnFit">איפוס (התאמה למסגרת)</button>
+            <button class="btn secondary" id="btnZoomOut">– זום</button>
+            <button class="btn secondary" id="btnZoomIn">+ זום</button>
           </div>
 
-          <div style="height:8px"></div>
-          <div class="muted">מחסן האריחים שלך:</div>
+          <div style="height:10px"></div>
+          <div class="muted" style="margin-bottom:6px;">מחסן האריחים שלך:</div>
           <div id="inventory" class="inv-wrap"></div>
         </div>
 
-        <div class="grid-container">
-          <div id="gridFrame" class="grid-frame">
+        <!-- ימין/מתחת: לוח -->
+        <div id="gridFrame" class="grid-frame">
+          <div id="diamondWrap" class="diamond-wrap">
             <div id="diamondGrid" class="diamond-grid"></div>
           </div>
         </div>
@@ -392,7 +397,7 @@
 </div>
 
 <footer>
-  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">תוכן עניינים | להכניס עניין לתוכן</a>
+  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">להכניס עניין לתוכן</a>
 </footer>
 
 <!-- מודאל כניסה -->
@@ -466,7 +471,7 @@
         <input type="text" id="suggestE" placeholder="למה זה הפתרון?"/>
       </div>
       <div id="suggestMsg" class="msg hidden"></div>
-      <div class="help">נשמר ב-Firestore תחת suggestions כדי שתוכל להעתיק אחר כך ל-questions.json.</div>
+      <div class="help">ההצעה נשמרת ב-Firestore תחת suggestions כדי שתוכל להעתיק אחר כך ל-questions.json.</div>
     </div>
     <div class="footer">
       <button class="btn secondary" id="btnSuggestClose">סגור</button>
@@ -499,8 +504,20 @@
 
   // ====== GAME CONFIG ======
   const GAME_ID = "chainboard_territory_v1";
+
+  // לוח: אתה משנה רק את W/H וכולם מתעדכנים
   const W = 20, H = 20;
   const TOTAL = W * H;
+
+  // בסיס עיצוב תאים
+  const CELL = 34;  // גודל תא "טבעי"
+  const GAP  = 6;
+
+  // ✅ CSS Vars ללוח
+  document.documentElement.style.setProperty("--W", W);
+  document.documentElement.style.setProperty("--H", H);
+  document.documentElement.style.setProperty("--cell", CELL + "px");
+  document.documentElement.style.setProperty("--gap", GAP + "px");
 
   const PALETTE = [
     "#f7941d", "#e7e8e9", "#00C2FF", "#FF4D6D", "#8B5CF6",
@@ -548,8 +565,11 @@
     cardsGrid: document.getElementById("cardsGrid"),
     inventory: document.getElementById("inventory"),
     inventoryTilesPage: document.getElementById("inventoryTilesPage"),
-    diamondGrid: document.getElementById("diamondGrid"),
+
     gridFrame: document.getElementById("gridFrame"),
+    diamondWrap: document.getElementById("diamondWrap"),
+    diamondGrid: document.getElementById("diamondGrid"),
+
     mapMsg: document.getElementById("mapMsg"),
 
     loginModal: document.getElementById("loginModal"),
@@ -586,12 +606,13 @@
   let boardCache = new Map();
 
   let selectedInvIndex = null;
-  let openQuizId = null;
 
-  // zoom modes:
-  // zoom=1 => FIT (no scroll)
-  // zoom>1 => manual zoom (scroll enabled)
+  // zoom:
+  // 1 = FIT למסגרת
+  // >1 = zoom עם גלילה
   let zoom = 1;
+
+  let openQuizId = null;
 
   // ====== HELPERS ======
   function setWorld(which){
@@ -601,8 +622,9 @@
     els.tabTiles.classList.toggle("active", tiles);
     els.tabMap.classList.toggle("active", !tiles);
     if(!tiles){
-      // map opened -> make sure fit recalculates
+      // כשהולכים למפה – ודא fit מסגרת
       requestAnimationFrame(()=>applyBoardScale());
+      setTimeout(()=>applyBoardScale(), 100);
     }
   }
 
@@ -793,82 +815,75 @@
     renderInto(els.inventoryTilesPage);
   }
 
-  function buildBoardGrid(){
+  function renderBoard(){
     els.diamondGrid.innerHTML = "";
-    els.diamondGrid.style.gridTemplateColumns = `repeat(${W}, 44px)`;
-    els.diamondGrid.style.gridTemplateRows = `repeat(${H}, 44px)`;
 
     for(let y=0;y<H;y++){
       for(let x=0;x<W;x++){
         const id = cellId(x,y);
+        const cellDoc = boardCache.get(id);
+
         const cell = document.createElement("div");
         cell.className = "dcell";
-        cell.dataset.x = x;
-        cell.dataset.y = y;
+
+        if(cellDoc){
+          const owner = cellDoc.owner;
+          const udoc = usersCache.get(owner);
+          const fillColor = blendedColorForUser(udoc);
+
+          const fill = document.createElement("div");
+          fill.className = "fill";
+          fill.style.background = fillColor;
+          cell.appendChild(fill);
+
+          const name = document.createElement("div");
+          name.className = "name";
+          name.textContent = owner || "";
+          cell.appendChild(name);
+        }
+
         cell.addEventListener("click", ()=> onPlaceTile(x,y));
         els.diamondGrid.appendChild(cell);
       }
     }
+
+    // ✅ אחרי רינדור, להתאים למסגרת
+    requestAnimationFrame(()=>applyBoardScale());
   }
 
-  function paintBoardCells(){
-    // iterate through all cells and paint from cache
-    const children = els.diamondGrid.children;
-    for(let i=0;i<children.length;i++){
-      const cell = children[i];
-      const x = Number(cell.dataset.x);
-      const y = Number(cell.dataset.y);
-      const id = cellId(x,y);
-      const cellDoc = boardCache.get(id);
-
-      cell.innerHTML = "";
-
-      if(cellDoc){
-        const owner = cellDoc.owner;
-        const udoc = usersCache.get(owner);
-        const fillColor = blendedColorForUser(udoc);
-
-        const fill = document.createElement("div");
-        fill.className = "fill";
-        fill.style.background = fillColor;
-        cell.appendChild(fill);
-
-        const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = owner || "";
-        cell.appendChild(name);
-      }
-    }
-
-    applyBoardScale();
-  }
-
+  // ====== ✅ FIT/ZOOM scaling that doesn't break layout ======
   function applyBoardScale(){
     const frame = els.gridFrame;
-    if(!frame) return;
+    const wrap = els.diamondWrap;
+    if(!frame || !wrap) return;
 
-    // zoom==1 => fit
+    const naturalW = (W * CELL) + ((W-1) * GAP);
+    const naturalH = (H * CELL) + ((H-1) * GAP);
+
+    const rect = frame.getBoundingClientRect();
+    const pad = 10 * 2;
+    const availW = Math.max(50, rect.width - pad);
+    const availH = Math.max(50, rect.height - pad);
+
     if(zoom <= 1){
       frame.classList.remove("zoomed");
-
-      // available size inside frame
-      const rect = frame.getBoundingClientRect();
-      const pad = 10 * 2; // matches .grid-frame padding
-      const availW = Math.max(50, rect.width - pad);
-      const availH = Math.max(50, rect.height - pad);
-
-      const naturalW = (W * 44) + ((W-1) * 8);
-      const naturalH = (H * 44) + ((H-1) * 8);
-
       const s = Math.min(availW / naturalW, availH / naturalH);
+
+      wrap.style.width  = (naturalW * s) + "px";
+      wrap.style.height = (naturalH * s) + "px";
+
       els.diamondGrid.style.transform = `scale(${s})`;
-      els.diamondGrid.style.margin = "0";
     } else {
       frame.classList.add("zoomed");
+
+      wrap.style.width  = (naturalW * zoom) + "px";
+      wrap.style.height = (naturalH * zoom) + "px";
+
       els.diamondGrid.style.transform = `scale(${zoom})`;
-      els.diamondGrid.style.margin = "0";
     }
   }
+
+  window.addEventListener("resize", ()=>applyBoardScale());
 
   // ====== QUIZ MODAL ======
   function openQuiz(qid){
@@ -1113,7 +1128,7 @@
       qs.forEach(d=> usersCache.set(d.id, d.data()));
       updateHud();
       renderInventory();
-      paintBoardCells();
+      renderBoard();
       renderCards();
       renderScoresIfOpen();
     });
@@ -1127,7 +1142,7 @@
     onSnapshot(boardCol, (qs)=>{
       boardCache.clear();
       qs.forEach(d=> boardCache.set(d.id, d.data()));
-      paintBoardCells();
+      renderBoard();
     });
   }
 
@@ -1142,12 +1157,11 @@
     applyBoardScale();
   });
   els.btnZoomIn.addEventListener("click", ()=>{
-    zoom = Math.min(3, (zoom <= 1 ? 1.25 : zoom + 0.15));
+    zoom = Math.min(3.0, zoom + 0.2);
     applyBoardScale();
   });
   els.btnZoomOut.addEventListener("click", ()=>{
-    if(zoom <= 1) return;
-    zoom = Math.max(1, zoom - 0.15);
+    zoom = Math.max(1.0, zoom - 0.2);
     applyBoardScale();
   });
 
@@ -1160,9 +1174,6 @@
       const res = await tryLogin(els.loginName.value);
       if(!res.ok) return setMsg(els.loginMsg, res.msg, "bad");
       updateHud();
-      renderCards();
-      renderInventory();
-      paintBoardCells();
     }catch(e){
       setMsg(els.loginMsg, "שגיאה. בדוק Firebase config / Rules.", "bad");
     }
@@ -1185,25 +1196,16 @@
     m.addEventListener("click",(e)=>{ if(e.target===m) hideModal(m); });
   }
 
-  // ✅ רה-פיט על שינוי גודל מסך/סיבוב
-  window.addEventListener("resize", ()=>{
-    if(zoom <= 1) applyBoardScale();
-  });
-
   // ====== BOOT ======
   (async function boot(){
     setWorld("tiles");
-    buildBoardGrid();
-
     await loadQuestions();
     await ensureGameSeeded();
     startListeners();
 
     if(!currentUser) showModal(els.loginModal);
     updateHud();
-
-    // give initial fit a tick
-    requestAnimationFrame(()=>applyBoardScale());
+    applyBoardScale();
   })();
 </script>
 </body>
