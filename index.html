@@ -1225,16 +1225,21 @@
   }
 
   // ====== BOOT ======
-  (async function boot(){
-    setWorld("tiles");
-    await loadQuestions();
-    await ensureGameSeeded();
-    startListeners();
+(async function boot(){
+  setWorld("tiles");
 
-    if(!currentUser) showModal(els.loginModal);
-    updateHud();
-    applyBoardScale();
-  })();
+  await loadQuestions();
+
+  // ✅ חדש: מצייר את האריחים גם אם Firestore לא עובד כרגע
+  renderCards();
+
+  await ensureGameSeeded();
+  startListeners();
+
+  if(!currentUser) showModal(els.loginModal);
+  updateHud();
+  applyBoardScale();
+})();
 </script>
 </body>
 </html>
