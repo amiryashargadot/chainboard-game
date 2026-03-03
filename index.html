@@ -3,392 +3,394 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>ChainBoard</title>
+  <title>תרתי משמע — סטטי</title>
 
   <style>
     :root{
-      --bg:#000000;
-      --stage:#f7941d;        /* כתום */
-      --accent:#e7e8e9;       /* אפור-לבן (במקום הירוק) */
-      --text:#F5F5F5;
+      --bg:#000;
+      --text:#f4f4f4;
+      --muted:rgba(255,255,255,.72);
+      --line:rgba(255,255,255,.12);
 
-      --shadow: 0 14px 40px rgba(0,0,0,.45);
+      --orange:#f7941d;
+      --card:rgba(255,255,255,.05);
+      --card2:rgba(255,255,255,.07);
+
       --radius:18px;
-      --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Hebrew", sans-serif;
+      --shadow:0 16px 48px rgba(0,0,0,.55);
+
+      --cell:34px;
+      --gap:6px;
     }
 
     *{box-sizing:border-box}
-    body{margin:0;font-family:var(--font);background:var(--bg);color:var(--text);overflow-x:hidden;}
-    a{color:inherit}
-
-    header{
-      position:sticky;top:0;z-index:10;
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      padding:10px 14px;background:rgba(0,0,0,.92);
-      border-bottom:1px solid rgba(231,232,233,.25);backdrop-filter: blur(10px);
-      flex-wrap:wrap; /* ✅ מונע "טור בצד" */
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans Hebrew", sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      overflow-x:hidden;
     }
 
-    .brand{display:flex;align-items:center;gap:12px;min-width:220px;}
-    .brand img{height:34px;width:auto;display:block;filter: drop-shadow(0 8px 18px rgba(0,0,0,.35));}
-    .brand .title{font-weight:950;color:rgba(255,255,255,.9);font-size:14px;letter-spacing:.2px}
+    header{
+      position:sticky;top:0;z-index:20;
+      background:rgba(0,0,0,.92);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+      padding:10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .brand{
+      display:flex;align-items:center;gap:10px;
+      min-width:240px;
+    }
+    .logoBox{
+      width:34px;height:34px;border-radius:10px;
+      background:linear-gradient(180deg,#ffb55a,var(--orange));
+      box-shadow:0 12px 26px rgba(0,0,0,.35);
+      position:relative;
+    }
+    .logoBox:after{
+      content:"";position:absolute;inset:7px;border-radius:6px;
+      border:2px solid rgba(0,0,0,.45);
+      box-shadow: inset 0 0 0 2px rgba(255,255,255,.15);
+    }
+    .brandTitle{
+      display:flex;flex-direction:column;line-height:1.05;
+    }
+    .brandTitle .small{font-weight:800;color:rgba(255,255,255,.75);font-size:12px}
+    .brandTitle .big{font-weight:1000;font-size:22px;letter-spacing:.2px}
+    .brandTitle .big span{color:var(--orange)}
 
     .hud{
       display:flex;align-items:center;gap:10px;
-      flex-wrap:wrap;justify-content:flex-end;
-      flex: 1 1 auto;
-      min-width: 260px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      flex:1;
+      min-width:260px;
     }
-
     .pill{
-      display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;
-      background:rgba(255,255,255,.04);border:1px solid rgba(231,232,233,.25);
-      color:rgba(231,232,233,.92);font-size:12px;user-select:none;
+      display:flex;align-items:center;gap:8px;
+      padding:7px 10px;border-radius:999px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.16);
+      color:rgba(255,255,255,.82);
+      font-size:12px;
       white-space:nowrap;
+      user-select:none;
     }
-    .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px rgba(231,232,233,.16);}
-
+    .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 0 0 3px rgba(255,255,255,.12)}
     .btn{
-      cursor:pointer;padding:9px 12px;border-radius:12px;
-      border:1px solid rgba(231,232,233,.35);background:rgba(231,232,233,.10);
-      color:var(--accent);font-weight:800;font-size:13px;
-      box-shadow:0 10px 22px rgba(0,0,0,.28);
-      transition:transform .08s ease, background .15s ease, border-color .15s ease;
+      cursor:pointer;
+      padding:9px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.06);
+      color:rgba(255,255,255,.88);
+      font-weight:900;
+      font-size:13px;
+      box-shadow:0 12px 26px rgba(0,0,0,.35);
       user-select:none;
       white-space:nowrap;
+      transition:transform .08s ease, background .15s ease, border-color .15s ease;
     }
-    .btn:hover{transform:translateY(-1px);background:rgba(231,232,233,.14);border-color:rgba(231,232,233,.55);}
-    .btn:active{transform:translateY(0px) scale(.99);}
-    .btn.secondary{background:rgba(255,255,255,.04);color:var(--text);border-color:rgba(255,255,255,.14);font-weight:650;}
-    .btn.danger{border-color:rgba(251,113,133,.5);background:rgba(251,113,133,.12);color:#ffd6dd;}
+    .btn:hover{transform:translateY(-1px);background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.28)}
+    .btn:active{transform:translateY(0px) scale(.99)}
+    .btn.orange{border-color:rgba(247,148,29,.55);background:rgba(247,148,29,.14);color:#ffe6c5}
+    .btn.danger{border-color:rgba(251,113,133,.55);background:rgba(251,113,133,.14);color:#ffe0e6}
 
-    main{min-height: calc(100svh - 58px - 74px - 56px);}
-
-    .stage{
-      background: linear-gradient(180deg, #ffad45 0%, var(--stage) 45%, #f07d00 100%);
-      position:relative;padding-bottom:16px;
-    }
-    .stage::before{
-      content:"";position:absolute;inset:0;opacity:.16;
-      background:
-        radial-gradient(800px 260px at 60% 8%, rgba(0,0,0,.75), transparent 55%),
-        radial-gradient(700px 260px at 20% 30%, rgba(0,0,0,.55), transparent 60%);
-      pointer-events:none;
+    main{
+      min-height: calc(100svh - 58px - 74px);
+      padding-bottom: 80px;
     }
 
-    .section{padding:14px 14px 10px;position:relative;z-index:1;}
+    .section{
+      padding:14px 12px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
 
-    .row{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;}
     .card{
-      background:rgba(0,0,0,.72);
+      background:rgba(255,255,255,.045);
       border:1px solid rgba(255,255,255,.10);
       border-radius:var(--radius);
       box-shadow:var(--shadow);
       padding:12px;
     }
-    .card h2{margin:0 0 8px 0;font-size:14px;color:var(--accent);letter-spacing:.3px;}
-    .muted{color:rgba(255,255,255,.78);font-size:12px;line-height:1.35;}
-
-    /* ✅ כרטיסים: לא "מסגרות ענקיות" – מינימום גובה */
-    .card.compact{padding:12px}
-    .card.compact .muted{margin:0}
-
-    /* Cards grid */
-    .cards-wrap{border-radius:var(--radius);overflow:hidden;border:1px solid rgba(0,0,0,.18);background:rgba(0,0,0,.10);}
-    .cards-top{
-      height:18px;background:repeating-linear-gradient(90deg, rgba(0,0,0,.92) 0 18px, rgba(0,0,0,.25) 18px 26px);
-      border-bottom:1px solid rgba(255,255,255,.10);box-shadow:inset 0 2px 0 rgba(255,255,255,.08);
+    .card h2{
+      margin:0 0 8px 0;
+      font-size:14px;
+      color:rgba(255,255,255,.92);
+      letter-spacing:.2px;
     }
+    .muted{color:var(--muted);font-size:12.5px;line-height:1.35}
 
-    .cards-grid{
+    /* ====== WORLDS ====== */
+    .hidden{display:none !important;}
+
+    /* ====== TILES WORLD ====== */
+    .tilesHeader{
+      display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;
+    }
+    .tilesHeader .card{flex:1 1 360px}
+    .tilesWrap{
+      margin-top:12px;
+      border-radius:var(--radius);
+      overflow:hidden;
+      border:1px solid rgba(0,0,0,.20);
+      background:rgba(255,255,255,.04);
+    }
+    .tilesTop{
+      height:18px;
+      background:repeating-linear-gradient(90deg, rgba(0,0,0,.92) 0 18px, rgba(0,0,0,.30) 18px 26px);
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    .tilesGrid{
       display:grid;
       grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-      grid-auto-rows: 110px;
-      gap: 10px;
-      padding: 12px;
-      max-height: 420px;
+      grid-auto-rows:110px;
+      gap:10px;
+      padding:12px;
+      max-height:420px;
       overflow:auto;
     }
-
-    .quiz-card{
+    .tileCard{
       border-radius:16px;
-      box-shadow:0 10px 25px rgba(0,0,0,.35);
-      padding:10px;position:relative;cursor:pointer;user-select:none;
-      transition:transform .12s ease, filter .12s ease, opacity .12s ease;
       border:2px solid rgba(255,255,255,.10);
+      background:linear-gradient(180deg, rgba(247,148,29,.90), rgba(240,125,0,.90));
+      box-shadow:0 12px 26px rgba(0,0,0,.35);
+      position:relative;
+      cursor:pointer;
+      user-select:none;
+      transition:transform .12s ease, filter .12s ease;
       overflow:hidden;
+      padding:10px;
     }
-    .quiz-card:hover{transform:translateY(-2px);filter:brightness(1.03);}
-    .quiz-card.solved{
-      filter: grayscale(1);
-      opacity: .45;
-      cursor: not-allowed;
-    }
-    .qc-small{
+    .tileCard:hover{transform:translateY(-2px);filter:brightness(1.03)}
+    .tileSmall{
       position:absolute;top:8px;right:8px;
-      font-size:11px;color:rgba(0,0,0,.75);
-      background:rgba(255,255,255,.60);border:1px solid rgba(0,0,0,.12);
+      font-size:11px;color:rgba(0,0,0,.78);
+      background:rgba(255,255,255,.65);
+      border:1px solid rgba(0,0,0,.12);
       padding:3px 7px;border-radius:999px;
       backdrop-filter: blur(8px);
     }
-    .qc-big{
+    .tileBig{
       height:100%;
       display:flex;align-items:center;justify-content:center;
-      font-size:40px;font-weight:1000;color:rgba(0,0,0,.78);
+      font-size:40px;font-weight:1000;
+      color:rgba(0,0,0,.78);
       text-shadow:0 2px 0 rgba(255,255,255,.25);
     }
 
-    /* Inventory tiles */
-    .inv-wrap{display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
-    .diamond{
-      width:44px;height:44px;
-      border-radius:10px;
-      border:2px solid rgba(255,255,255,.14);
-      box-shadow:0 10px 22px rgba(0,0,0,.25);
-      cursor:pointer;position:relative;
-    }
-    .diamond.selected{
-      outline:3px solid rgba(231,232,233,.55);
-      box-shadow:0 0 0 7px rgba(231,232,233,.16), 0 10px 22px rgba(0,0,0,.25);
-    }
-    .diamond::after{
-      content:"";position:absolute;inset:0;border-radius:8px;
-      box-shadow: inset 0 0 0 2px rgba(0,0,0,.14);
-    }
-
-    /* ===== MAP LAYOUT ===== */
-    .board-stage{
-      background: linear-gradient(180deg, rgba(0,0,0,.95) 0%, rgba(0,0,0,.88) 100%);
-      padding-bottom:18px;border-top:1px solid rgba(255,255,255,.08);
-    }
-
-    /* ✅ Desktop: side-by-side. Mobile: stack */
-    .map-layout{
+    /* ====== MAP WORLD LAYOUT ====== */
+    .mapLayout{
       display:grid;
+      grid-template-columns: minmax(360px, 1fr) minmax(320px, 420px);
       gap:12px;
-      grid-template-columns: minmax(320px, 420px) minmax(320px, 1fr);
       align-items:start;
     }
 
-    /* ✅ הלוח חייב להיות ריבוע */
-    .grid-frame{
+    /* ✅ המסגרת של הלוח חייבת להיות ריבוע */
+    .gridFrame{
       width:100%;
       aspect-ratio: 1 / 1;
-      border-radius:18px;
+      border-radius:var(--radius);
       background:rgba(255,255,255,.06);
       border:1px solid rgba(255,255,255,.10);
       box-shadow:var(--shadow);
       padding:10px;
-      overflow:hidden; /* fit mode */
+      overflow:hidden;             /* fit mode */
       display:flex;
       align-items:center;
       justify-content:center;
     }
-    .grid-frame.zoomed{
-      overflow:auto; /* ✅ בזום – גלילה בפנים */
+    .gridFrame.zoomed{
+      overflow:auto;               /* ✅ בזום – גלילה בתוך המסגרת */
       align-items:flex-start;
       justify-content:flex-start;
     }
 
-    /* ✅ עטיפה שמקבלת את המידות של הסקייל */
-    .diamond-wrap{position:relative;}
+    .diamondWrap{position:relative;}
 
-    .diamond-grid{
+    .diamondGrid{
       display:grid;
-      grid-template-columns:repeat(var(--W), var(--cell));
-      grid-template-rows:repeat(var(--H), var(--cell));
-      gap:var(--gap);
+      grid-template-columns: repeat(var(--W), var(--cell));
+      grid-template-rows: repeat(var(--H), var(--cell));
+      gap: var(--gap);
       transform-origin: 0 0;
     }
-
     .dcell{
       width:var(--cell);height:var(--cell);
       border-radius:12px;
       background:rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.08);
-      cursor:pointer;
-      position:relative;
-      overflow:hidden;
-    }
-    .dcell:hover{background:rgba(255,255,255,.07);}
-
-    .dcell .fill{
-      position:absolute;inset:0;border-radius:12px;
-    }
-    .dcell .name{
-      position:absolute;inset:0;
-      display:flex;align-items:center;justify-content:center;
-      font-size:10px;font-weight:900;
-      color:rgba(255,255,255,.92);
-      text-shadow: 0 2px 8px rgba(0,0,0,.65);
-      padding:4px;
-      text-align:center;
-      pointer-events:none;
     }
 
-    .msg{padding:10px 12px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);font-size:13px;line-height:1.35;}
-    .msg.good{border-color: rgba(74,222,128,.35); background: rgba(74,222,128,.12);}
-    .msg.bad{border-color: rgba(251,113,133,.45); background: rgba(251,113,133,.12);}
-    .msg.warn{border-color: rgba(251,191,36,.45); background: rgba(251,191,36,.12); color:#fff7d1;}
-    .hidden{display:none !important;}
-
+    /* tabs bottom */
     .tabs{
-      position:sticky;bottom:56px;z-index:10;padding:10px 12px;
-      background:rgba(0,0,0,.92);border-top:1px solid rgba(231,232,233,.25);
-      display:flex;justify-content:center;gap:10px;backdrop-filter: blur(10px);
+      position:fixed;
+      left:0;right:0;bottom:56px;z-index:30;
+      padding:10px 12px;
+      background:rgba(0,0,0,.92);
+      border-top:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+      display:flex;justify-content:center;gap:10px;
     }
     .tab{
-      flex:1;max-width:260px;text-align:center;padding:12px 12px;border-radius:16px;cursor:pointer;
-      user-select:none;border:1px solid rgba(231,232,233,.25);background:rgba(255,255,255,.04);
-      color:rgba(231,232,233,.92);font-weight:950;letter-spacing:.2px;
+      flex:1;max-width:260px;
+      text-align:center;
+      padding:12px 12px;
+      border-radius:16px;
+      cursor:pointer;
+      user-select:none;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.04);
+      color:rgba(255,255,255,.86);
+      font-weight:950;
     }
-    .tab.active{background:rgba(231,232,233,.18);border-color:rgba(231,232,233,.55);color:var(--accent);box-shadow:0 12px 28px rgba(0,0,0,.35);}
+    .tab.active{
+      background:rgba(255,255,255,.12);
+      border-color:rgba(255,255,255,.30);
+      box-shadow:0 12px 28px rgba(0,0,0,.35);
+    }
 
     footer{
-      position:sticky;bottom:0;z-index:11;
-      background:rgba(0,0,0,.92);backdrop-filter: blur(10px);
+      position:fixed;left:0;right:0;bottom:0;z-index:31;
+      background:rgba(0,0,0,.92);
       border-top:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
       padding:10px 12px;
       display:flex;justify-content:center;
     }
     footer a{
-      color:var(--stage);
+      color:var(--orange);
       font-weight:950;
       text-decoration:none;
       letter-spacing:.2px;
     }
-    footer a:hover{text-decoration:underline;}
+    footer a:hover{text-decoration:underline}
 
-    /* Modals */
-    .modal-backdrop{
-      position:fixed;inset:0;background:rgba(0,0,0,.65);
-      display:none;align-items:center;justify-content:center;padding:14px;z-index:100;
-    }
-    .modal{
-      width:min(92vw, 560px);background:rgba(0,0,0,.92);
-      border:1px solid rgba(255,255,255,.12);border-radius:18px;box-shadow:var(--shadow);padding:14px;
-    }
-    .modal header{position:static;background:transparent;border:0;padding:0 0 10px 0;backdrop-filter:none;}
-    .modal h3{margin:0;font-size:15px;color:var(--accent);}
-    .modal .body{display:flex;flex-direction:column;gap:10px;}
-    .field{display:flex;flex-direction:column;gap:6px;}
-    .field label{font-size:12px;color:rgba(255,255,255,.86);}
-    input[type="text"]{
-      width:100%;border-radius:14px;border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.06);color:var(--text);padding:11px 12px;font-size:14px;outline:none;
-    }
-    .help{font-size:12px;color:rgba(255,255,255,.70);line-height:1.35;}
-    .modal .footer{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding-top:12px;}
-
-    /* ✅ MOBILE FIXES */
+    /* ✅ MOBILE */
     @media (max-width: 900px){
       header{justify-content:center}
       .brand{min-width:auto}
       .hud{justify-content:center}
-      .map-layout{grid-template-columns: 1fr;}
-      .cards-grid{
-        grid-template-columns: repeat(5, 1fr); /* ✅ 5 בשורה */
-        grid-auto-rows: 78px;
-        gap:8px;
-        max-height: 360px;
+
+      /* ✅ במובייל: פאנל למעלה, לוח למטה */
+      .mapLayout{
+        grid-template-columns: 1fr;
       }
-      .qc-big{font-size:28px;}
-      .quiz-card{border-radius:14px;padding:8px;}
-      .qc-small{font-size:10px;top:6px;right:6px;padding:2px 6px;}
-      .diamond{width:38px;height:38px;}
+
+      /* ✅ חידות: 5 בשורה */
+      .tilesGrid{
+        grid-template-columns: repeat(5, 1fr);
+        grid-auto-rows:78px;
+        gap:8px;
+        max-height:360px;
+      }
+      .tileBig{font-size:28px}
+      .tileCard{border-radius:14px;padding:8px}
+      .tileSmall{font-size:10px;top:6px;right:6px;padding:2px 6px}
     }
   </style>
 </head>
 
 <body>
+
 <header>
   <div class="brand">
-    <img src="logo.png" alt="לוגו"/>
-    <div class="title">תוכן עניינים</div>
+    <div class="logoBox" aria-hidden="true"></div>
+    <div class="brandTitle">
+      <div class="small">תוכן עניינים</div>
+      <div class="big">תרתי <span>משמע</span></div>
+    </div>
   </div>
 
   <div class="hud">
-    <div class="pill" title="המשתמש הנוכחי"><span class="dot"></span><span id="hudUser">לא מחובר</span></div>
-    <div class="pill" title="אריחים שהנחת">🧩 <span id="hudTiles">0</span></div>
-    <div class="pill" title="אחוז שטח">📐 <span id="hudPct">0.0</span>%</div>
-    <button class="btn secondary" id="btnScores">לוח נקודות</button>
-    <button class="btn secondary" id="btnSuggest">הצע חידה</button>
-    <button class="btn danger" id="btnLogout">יציאה</button>
+    <div class="pill"><span class="dot"></span><span>לא מחובר</span></div>
+    <div class="pill">🧩 <span>0</span></div>
+    <div class="pill">📐 <span>0.0</span>%</div>
+    <button class="btn secondary">לוח נקודות</button>
+    <button class="btn orange">הצע חידה</button>
+    <button class="btn danger">יציאה</button>
   </div>
 </header>
 
 <main>
-  <!-- אריחים -->
-  <section id="tilesWorld" class="stage">
-    <div class="section">
-      <div class="row">
-        <div class="card compact" style="flex:1 1 420px;">
-          <h2>אריחים</h2>
-          <div class="muted">
-            על כל חידה שתפתרו תקבלו אריח צבעוני למחסן. אפשר להציע חידות בכפתור למעלה.
-          </div>
-        </div>
 
-        <div class="card compact" style="flex:1 1 320px;">
-          <h2>כללי הצבה במפה</h2>
-          <div class="muted">
-            • האריח הראשון שלך חייב להיות מבודד (לא נוגע בשום אריח אחר).<br/>
-            • מכאן והלאה — מותר להציב רק אם האריח נוגע באריחים שלך (צמוד צד).<br/>
-            • צבע השטח שלך הוא ממוצע משוקלל של כל האריחים שהנחת.<br/>
-            • כל אריח שמציבים = נקודה אחת.
-          </div>
+  <!-- ====== TILES WORLD ====== -->
+  <section id="tilesWorld" class="section">
+    <div class="tilesHeader">
+      <div class="card">
+        <h2>אריחים</h2>
+        <div class="muted">
+          (סטטי) כאן יהיו חידות. כרגע זה רק עיצוב.
         </div>
       </div>
 
-      <div style="height:12px"></div>
-
-      <div class="cards-wrap">
-        <div class="cards-top" aria-hidden="true"></div>
-        <div id="cardsGrid" class="cards-grid"></div>
-      </div>
-
-      <div style="height:14px"></div>
-
-      <div class="card compact">
-        <h2>מחסן האריחים שלך</h2>
-        <div id="inventoryTilesPage" class="inv-wrap"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- מפה -->
-  <section id="mapWorld" class="board-stage hidden">
-    <div class="section">
-      <div class="map-layout">
-        <!-- שמאל: טקסט / כפתורים -->
-        <div class="card" style="width:100%;">
-          <h2>מפה</h2>
-          <div class="muted">בחר אריח מהמחסן → לחץ על משבצת במפה כדי להציב.</div>
-
-          <div style="height:10px"></div>
-          <div id="mapMsg" class="msg warn hidden"></div>
-
-          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;">
-            <button class="btn secondary" id="btnBackTiles">חזור לאריחים</button>
-            <button class="btn secondary" id="btnFit">איפוס (התאמה למסגרת)</button>
-            <button class="btn secondary" id="btnZoomOut">– זום</button>
-            <button class="btn secondary" id="btnZoomIn">+ זום</button>
-          </div>
-
-          <div style="height:10px"></div>
-          <div class="muted" style="margin-bottom:6px;">מחסן האריחים שלך:</div>
-          <div id="inventory" class="inv-wrap"></div>
-        </div>
-
-        <!-- ימין/מתחת: לוח -->
-        <div id="gridFrame" class="grid-frame">
-          <div id="diamondWrap" class="diamond-wrap">
-            <div id="diamondGrid" class="diamond-grid"></div>
-          </div>
+      <div class="card">
+        <h2>כללי הצבה במפה</h2>
+        <div class="muted">
+          (סטטי) רק כדי לראות פריסה. אחרי שננעלים על העיצוב — נחזיר את כל הלוגיקה.
         </div>
       </div>
     </div>
+
+    <div class="tilesWrap">
+      <div class="tilesTop" aria-hidden="true"></div>
+      <div id="tilesGrid" class="tilesGrid"></div>
+    </div>
+
+    <div style="height:12px"></div>
+
+    <div class="card">
+      <h2>מחסן האריחים שלך</h2>
+      <div class="muted">(סטטי) כאן יהיו אריחים שבאמת צברת.</div>
+    </div>
   </section>
+
+  <!-- ====== MAP WORLD ====== -->
+  <section id="mapWorld" class="section hidden">
+    <div class="mapLayout">
+
+      <!-- ✅ בדסקטופ זה יופיע מימין (כי RTL), במובייל מעל -->
+      <div class="card">
+        <h2>מפה</h2>
+        <div class="muted">בחר אריח → לחץ על משבצת במפה. (כרגע אין הצבה, רק עיצוב)</div>
+
+        <div style="height:10px"></div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <button class="btn" id="btnFit">איפוס (התאמה למסגרת)</button>
+          <button class="btn" id="btnZoomOut">– זום</button>
+          <button class="btn" id="btnZoomIn">+ זום</button>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="muted">מחסן האריחים שלך:</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(247,148,29,.9);border:2px solid rgba(255,255,255,.12)"></div>
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(231,232,233,.9);border:2px solid rgba(255,255,255,.12)"></div>
+          <div style="width:40px;height:40px;border-radius:10px;background:rgba(0,194,255,.9);border:2px solid rgba(255,255,255,.12)"></div>
+        </div>
+      </div>
+
+      <!-- ✅ לוח ריבועי -->
+      <div id="gridFrame" class="gridFrame">
+        <div id="diamondWrap" class="diamondWrap">
+          <div id="diamondGrid" class="diamondGrid"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
 </main>
 
 <div class="tabs">
@@ -397,472 +399,96 @@
 </div>
 
 <footer>
-  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">להכניס עניין לתוכן</a>
+  <a href="#" onclick="return false;">להכניס עניין לתוכן</a>
 </footer>
 
-<!-- מודאל כניסה -->
-<div class="modal-backdrop" id="loginModal">
-  <div class="modal">
-    <header><h3>כניסה</h3></header>
-    <div class="body">
-      <div class="msg warn">שם משתמש חייב להיות ייחודי.</div>
-      <div class="field">
-        <label>בחר שם משתמש</label>
-        <input type="text" id="loginName" placeholder="למשל: Amir" autocomplete="off"/>
-        <div class="help">2–20 תווים. עברית/אנגלית/מספרים.</div>
-      </div>
-      <div id="loginMsg" class="msg bad hidden"></div>
-    </div>
-    <div class="footer">
-      <button class="btn" id="btnLogin">היכנס</button>
-    </div>
-  </div>
-</div>
-
-<!-- מודאל חידה -->
-<div class="modal-backdrop" id="quizModal">
-  <div class="modal">
-    <header style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <h3>חידה</h3>
-      <div class="pill" style="margin:0" title="כמה פתרו">👥 <span id="quizSolvedCount">0</span></div>
-    </header>
-    <div class="body">
-      <div class="msg" id="quizQuestion">—</div>
-      <div class="help" id="quizHint">מספר תווים: —</div>
-      <div class="field">
-        <label>התשובה שלך</label>
-        <input type="text" id="quizAnswer" placeholder="כתוב/כתבי כאן" autocomplete="off"/>
-      </div>
-      <div id="quizMsg" class="msg hidden"></div>
-    </div>
-    <div class="footer">
-      <button class="btn secondary" id="btnQuizClose">סגור</button>
-      <button class="btn" id="btnQuizSubmit">בדוק</button>
-    </div>
-  </div>
-</div>
-
-<!-- מודאל לוח נקודות -->
-<div class="modal-backdrop" id="scoresModal">
-  <div class="modal">
-    <header style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <h3>לוח נקודות</h3>
-      <button class="btn secondary" id="btnScoresClose">סגור</button>
-    </header>
-    <div class="body"><div id="scoresBody" class="msg">—</div></div>
-  </div>
-</div>
-
-<!-- מודאל הצעת חידה -->
-<div class="modal-backdrop" id="suggestModal">
-  <div class="modal">
-    <header><h3>הצע חידה</h3></header>
-    <div class="body">
-      <div class="field">
-        <label>החידה</label>
-        <input type="text" id="suggestQ" placeholder="כתוב את החידה"/>
-      </div>
-      <div class="field">
-        <label>הפתרון</label>
-        <input type="text" id="suggestA" placeholder="כתוב את הפתרון"/>
-      </div>
-      <div class="field">
-        <label>הסבר (אופציונלי)</label>
-        <input type="text" id="suggestE" placeholder="למה זה הפתרון?"/>
-      </div>
-      <div id="suggestMsg" class="msg hidden"></div>
-      <div class="help">ההצעה נשמרת ב-Firestore תחת suggestions כדי שתוכל להעתיק אחר כך ל-questions.json.</div>
-    </div>
-    <div class="footer">
-      <button class="btn secondary" id="btnSuggestClose">סגור</button>
-      <button class="btn" id="btnSuggestSubmit">שלח</button>
-    </div>
-  </div>
-</div>
-
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-  import {
-    getFirestore, doc, setDoc, getDoc,
-    onSnapshot, collection, getDocs,
-    writeBatch, serverTimestamp, runTransaction,
-    addDoc, arrayUnion
-  } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAXdEWNom2JklbeE5BcO1O3Ku5RyTy5dak",
-    authDomain: "chainboard-game.firebaseapp.com",
-    projectId: "chainboard-game",
-    storageBucket: "chainboard-game.firebasestorage.app",
-    messagingSenderId: "32990886125",
-    appId: "1:32990886125:web:fcacfa2b044c92774434e4",
-    measurementId: "G-0RC2SMP1N8"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // ====== GAME CONFIG ======
-  const GAME_ID = "chainboard_territory_v1";
-
-  // לוח: אתה משנה רק את W/H וכולם מתעדכנים
+<script>
+  // ====== DEMO DATA ======
   const W = 20, H = 20;
-  const TOTAL = W * H;
+  const CELL = 34, GAP = 6;
 
-  // בסיס עיצוב תאים
-  const CELL = 34;  // גודל תא "טבעי"
-  const GAP  = 6;
-
-  // ✅ CSS Vars ללוח
   document.documentElement.style.setProperty("--W", W);
   document.documentElement.style.setProperty("--H", H);
   document.documentElement.style.setProperty("--cell", CELL + "px");
   document.documentElement.style.setProperty("--gap", GAP + "px");
 
-  const PALETTE = [
-    "#f7941d", "#e7e8e9", "#00C2FF", "#FF4D6D", "#8B5CF6",
-    "#22C55E", "#FBBF24", "#EF4444", "#14B8A6", "#FFFFFF"
-  ];
-
-  // ====== FIRESTORE PATHS ======
-  const gameRef = doc(db, "games", GAME_ID);
-  const usersCol = collection(db, "games", GAME_ID, "users");
-  const quizzesCol = collection(db, "games", GAME_ID, "quizzes");
-  const boardCol = collection(db, "games", GAME_ID, "board");
-  const suggestionsCol = collection(db, "games", GAME_ID, "suggestions");
-
-  // ====== UI ======
   const els = {
     tilesWorld: document.getElementById("tilesWorld"),
     mapWorld: document.getElementById("mapWorld"),
     tabTiles: document.getElementById("tabTiles"),
     tabMap: document.getElementById("tabMap"),
-
-    hudUser: document.getElementById("hudUser"),
-    hudTiles: document.getElementById("hudTiles"),
-    hudPct: document.getElementById("hudPct"),
-
-    btnScores: document.getElementById("btnScores"),
-    btnScoresClose: document.getElementById("btnScoresClose"),
-    scoresModal: document.getElementById("scoresModal"),
-    scoresBody: document.getElementById("scoresBody"),
-
-    btnSuggest: document.getElementById("btnSuggest"),
-    suggestModal: document.getElementById("suggestModal"),
-    suggestQ: document.getElementById("suggestQ"),
-    suggestA: document.getElementById("suggestA"),
-    suggestE: document.getElementById("suggestE"),
-    suggestMsg: document.getElementById("suggestMsg"),
-    btnSuggestClose: document.getElementById("btnSuggestClose"),
-    btnSuggestSubmit: document.getElementById("btnSuggestSubmit"),
-
-    btnLogout: document.getElementById("btnLogout"),
-    btnBackTiles: document.getElementById("btnBackTiles"),
-    btnFit: document.getElementById("btnFit"),
-    btnZoomIn: document.getElementById("btnZoomIn"),
-    btnZoomOut: document.getElementById("btnZoomOut"),
-
-    cardsGrid: document.getElementById("cardsGrid"),
-    inventory: document.getElementById("inventory"),
-    inventoryTilesPage: document.getElementById("inventoryTilesPage"),
-
+    tilesGrid: document.getElementById("tilesGrid"),
     gridFrame: document.getElementById("gridFrame"),
     diamondWrap: document.getElementById("diamondWrap"),
     diamondGrid: document.getElementById("diamondGrid"),
-
-    mapMsg: document.getElementById("mapMsg"),
-
-    loginModal: document.getElementById("loginModal"),
-    loginName: document.getElementById("loginName"),
-    btnLogin: document.getElementById("btnLogin"),
-    loginMsg: document.getElementById("loginMsg"),
-
-    quizModal: document.getElementById("quizModal"),
-    quizQuestion: document.getElementById("quizQuestion"),
-    quizHint: document.getElementById("quizHint"),
-    quizAnswer: document.getElementById("quizAnswer"),
-    quizMsg: document.getElementById("quizMsg"),
-    quizSolvedCount: document.getElementById("quizSolvedCount"),
-    btnQuizSubmit: document.getElementById("btnQuizSubmit"),
-    btnQuizClose: document.getElementById("btnQuizClose"),
+    btnFit: document.getElementById("btnFit"),
+    btnZoomIn: document.getElementById("btnZoomIn"),
+    btnZoomOut: document.getElementById("btnZoomOut"),
   };
 
-  const showModal = (el)=> el.style.display="flex";
-  const hideModal = (el)=> el.style.display="none";
-  const clearMsg = (el)=> { el.classList.add("hidden"); el.textContent=""; el.classList.remove("good","bad","warn"); };
-  const setMsg = (el, text, kind)=> { el.classList.remove("hidden","good","bad","warn"); el.classList.add(kind); el.textContent=text; };
-  const flashMap = (text, kind)=> {
-    setMsg(els.mapMsg, text, kind);
-    setTimeout(()=>clearMsg(els.mapMsg), 1400);
-  };
-
-  // ====== STATE ======
-  const SESSION_KEY = "chainboard_territory_user_v1";
-  let currentUser = localStorage.getItem(SESSION_KEY) || "";
-  let QUESTIONS = [];
-
-  let usersCache = new Map();
-  let quizzesCache = new Map();
-  let boardCache = new Map();
-
-  let selectedInvIndex = null;
-
-  // zoom:
-  // 1 = FIT למסגרת
-  // >1 = zoom עם גלילה
-  let zoom = 1;
-
-  let openQuizId = null;
-
-  // ====== HELPERS ======
+  // ====== WORLD SWITCH ======
   function setWorld(which){
-    const tiles = which === "tiles";
-    els.tilesWorld.classList.toggle("hidden", !tiles);
-    els.mapWorld.classList.toggle("hidden", tiles);
-    els.tabTiles.classList.toggle("active", tiles);
-    els.tabMap.classList.toggle("active", !tiles);
-    if(!tiles){
-      // כשהולכים למפה – ודא fit מסגרת
-      requestAnimationFrame(()=>applyBoardScale());
-      setTimeout(()=>applyBoardScale(), 100);
+    const isTiles = which === "tiles";
+    els.tilesWorld.classList.toggle("hidden", !isTiles);
+    els.mapWorld.classList.toggle("hidden", isTiles);
+    els.tabTiles.classList.toggle("active", isTiles);
+    els.tabMap.classList.toggle("active", !isTiles);
+
+    if(!isTiles){
+      requestAnimationFrame(applyBoardScale);
+      setTimeout(applyBoardScale, 60);
     }
   }
 
-  function ensureLoggedIn(){
-    if(!currentUser){
-      showModal(els.loginModal);
-      els.loginName.focus();
-      return false;
-    }
-    return true;
-  }
+  els.tabTiles.addEventListener("click", ()=>setWorld("tiles"));
+  els.tabMap.addEventListener("click", ()=>setWorld("map"));
 
-  async function tryLogin(name){
-    name = (name||"").trim();
-    if(!name) return {ok:false, msg:"צריך שם משתמש."};
-    if(!/^[\u0590-\u05FFa-zA-Z0-9 _.-]{2,20}$/.test(name)) return {ok:false, msg:"שם לא תקין. 2–20 תווים."};
-
-    const uref = doc(db, "games", GAME_ID, "users", name);
-    const snap = await getDoc(uref);
-    if(snap.exists()) return {ok:false, msg:"שם משתמש כבר תפוס."};
-
-    await setDoc(uref, {
-      tilesCount: 0,
-      rSum: 0, gSum: 0, bSum: 0,
-      inventory: [],
-      solvedQuizzes: [],
-      updatedAt: serverTimestamp(),
-    });
-
-    currentUser = name;
-    localStorage.setItem(SESSION_KEY, name);
-    hideModal(els.loginModal);
-    return {ok:true};
-  }
-
-  function updateHud(){
-    els.hudUser.textContent = currentUser || "לא מחובר";
-    const me = usersCache.get(currentUser);
-    const tiles = Number(me?.tilesCount || 0);
-    const pct = (tiles / TOTAL) * 100;
-    els.hudTiles.textContent = String(tiles);
-    els.hudPct.textContent = pct.toFixed(1);
-  }
-
-  function cellId(x,y){ return `${x}_${y}`; }
-  function inBounds(x,y){ return x>=0 && y>=0 && x<W && y<H; }
-  function neighbors4(x,y){
-    return [[x+1,y],[x-1,y],[x,y+1],[x,y-1]].filter(([nx,ny])=>inBounds(nx,ny));
-  }
-
-  function hexToRgb(hex){
-    const h = (hex||"").replace("#","");
-    const r = parseInt(h.slice(0,2),16);
-    const g = parseInt(h.slice(2,4),16);
-    const b = parseInt(h.slice(4,6),16);
-    return {r,g,b};
-  }
-  function rgbToHex(r,g,b){
-    const to = (v)=> Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2,"0");
-    return "#" + to(r) + to(g) + to(b);
-  }
-  function blendedColorForUser(userDoc){
-    const n = Number(userDoc?.tilesCount || 0);
-    if(n<=0) return "#222222";
-    const r = Number(userDoc?.rSum || 0) / n;
-    const g = Number(userDoc?.gSum || 0) / n;
-    const b = Number(userDoc?.bSum || 0) / n;
-    return rgbToHex(r,g,b);
-  }
-
-  function normAnswer(s){
-    return (s||"")
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g,"")
-      .replace(/[־-]/g,"")
-      .replace(/[“”"']/g,"")
-      .replace(/[^\u0590-\u05FFa-z0-9]/g,"");
-  }
-
-  // ====== QUESTIONS ======
-  async function loadQuestions(){
-    const res = await fetch("./questions.json", { cache: "no-store" });
-    if(!res.ok) throw new Error("לא הצלחתי לטעון questions.json");
-    const data = await res.json();
-    if(!Array.isArray(data)) throw new Error("questions.json חייב להיות מערך JSON");
-    for(const q of data){
-      if(!q?.id) throw new Error("כל חידה חייבת לכלול שדה id קבוע.");
-    }
-    QUESTIONS = data;
-  }
-
-  async function ensureGameSeeded(){
-    await setDoc(gameRef, { createdAt: serverTimestamp() }, { merge:true });
-
-    const existing = await getDocs(quizzesCol);
-    const existingIds = new Set();
-    existing.forEach(d=> existingIds.add(d.id));
-
-    const batch = writeBatch(db);
-    for (let i = 0; i < QUESTIONS.length; i++) {
-      const q = QUESTIONS[i];
-      const qid = String(q.id);
-      if(existingIds.has(qid)) continue;
-
-      batch.set(doc(db,"games",GAME_ID,"quizzes",qid), {
-        colorIndex: (i % PALETTE.length),
-        solvedCount: 0
-      });
-    }
-    await batch.commit();
-  }
-
-  // ====== RENDER ======
-  function renderCards(){
-    els.cardsGrid.innerHTML = "";
-
-    const me = usersCache.get(currentUser);
-    const solved = Array.isArray(me?.solvedQuizzes) ? me.solvedQuizzes : [];
-
-    for (let i = 0; i < QUESTIONS.length; i++) {
-      const q = QUESTIONS[i];
-      const qid = String(q.id);
-
-      const qMeta = quizzesCache.get(qid) || { colorIndex: i % PALETTE.length, solvedCount: 0 };
-      const color = PALETTE[qMeta.colorIndex] || PALETTE[0];
-      const solvedCount = Number(qMeta.solvedCount || 0);
-
-      const alreadySolved = solved.includes(qid);
-
+  // ====== BUILD DEMO TILES (just visuals) ======
+  function buildTiles(){
+    els.tilesGrid.innerHTML = "";
+    for(let i=0;i<40;i++){
       const card = document.createElement("div");
-      card.className = "quiz-card" + (alreadySolved ? " solved" : "");
-      card.style.background = color;
+      card.className = "tileCard";
 
       const small = document.createElement("div");
-      small.className = "qc-small";
+      small.className = "tileSmall";
       small.textContent = "פתרו כבר";
       card.appendChild(small);
 
       const big = document.createElement("div");
-      big.className = "qc-big";
-      big.textContent = String(solvedCount);
+      big.className = "tileBig";
+      big.textContent = String(Math.floor(Math.random()*10));
       card.appendChild(big);
 
-      card.addEventListener("click", ()=>{
-        if(!ensureLoggedIn()) return;
-        if(alreadySolved){
-          alert("פתרת כבר את חידה זו");
-          return;
-        }
-        openQuiz(qid);
-      });
-
-      els.cardsGrid.appendChild(card);
+      els.tilesGrid.appendChild(card);
     }
   }
 
-  function renderInventory(){
-    const me = usersCache.get(currentUser);
-    const inv = Array.isArray(me?.inventory) ? me.inventory : [];
-
-    const renderInto = (container)=>{
-      container.innerHTML = "";
-      if(inv.length === 0){
-        const d = document.createElement("div");
-        d.className = "muted";
-        d.textContent = "אין לך אריחים כרגע.";
-        container.appendChild(d);
-        return;
-      }
-
-      inv.forEach((hex, idx)=>{
-        const t = document.createElement("div");
-        t.className = "diamond" + (idx===selectedInvIndex ? " selected" : "");
-        t.style.background = hex;
-        t.title = hex;
-        t.addEventListener("click", ()=>{
-          selectedInvIndex = idx;
-          renderInventory();
-        });
-        container.appendChild(t);
-      });
-    };
-
-    selectedInvIndex = (selectedInvIndex != null && selectedInvIndex < inv.length) ? selectedInvIndex : null;
-
-    renderInto(els.inventory);
-    renderInto(els.inventoryTilesPage);
-  }
-
-  function renderBoard(){
+  // ====== BUILD EMPTY BOARD (just visuals) ======
+  function buildBoard(){
     els.diamondGrid.innerHTML = "";
-
     for(let y=0;y<H;y++){
       for(let x=0;x<W;x++){
-        const id = cellId(x,y);
-        const cellDoc = boardCache.get(id);
-
-        const cell = document.createElement("div");
-        cell.className = "dcell";
-
-        if(cellDoc){
-          const owner = cellDoc.owner;
-          const udoc = usersCache.get(owner);
-          const fillColor = blendedColorForUser(udoc);
-
-          const fill = document.createElement("div");
-          fill.className = "fill";
-          fill.style.background = fillColor;
-          cell.appendChild(fill);
-
-          const name = document.createElement("div");
-          name.className = "name";
-          name.textContent = owner || "";
-          cell.appendChild(name);
-        }
-
-        cell.addEventListener("click", ()=> onPlaceTile(x,y));
-        els.diamondGrid.appendChild(cell);
+        const c = document.createElement("div");
+        c.className = "dcell";
+        els.diamondGrid.appendChild(c);
       }
     }
-
-    // ✅ אחרי רינדור, להתאים למסגרת
-    requestAnimationFrame(()=>applyBoardScale());
   }
 
-  // ====== ✅ FIT/ZOOM scaling that doesn't break layout ======
+  // ====== FIT / ZOOM BEHAVIOR ======
+  let zoom = 1;
+
   function applyBoardScale(){
     const frame = els.gridFrame;
-    const wrap = els.diamondWrap;
-    if(!frame || !wrap) return;
+    const wrap  = els.diamondWrap;
 
     const naturalW = (W * CELL) + ((W-1) * GAP);
     const naturalH = (H * CELL) + ((H-1) * GAP);
 
     const rect = frame.getBoundingClientRect();
     const pad = 10 * 2;
-    const availW = Math.max(50, rect.width - pad);
+    const availW = Math.max(50, rect.width  - pad);
     const availH = Math.max(50, rect.height - pad);
 
     if(zoom <= 1){
@@ -873,7 +499,7 @@
       wrap.style.height = (naturalH * s) + "px";
 
       els.diamondGrid.style.transform = `scale(${s})`;
-    } else {
+    }else{
       frame.classList.add("zoomed");
 
       wrap.style.width  = (naturalW * zoom) + "px";
@@ -883,330 +509,27 @@
     }
   }
 
-  window.addEventListener("resize", ()=>applyBoardScale());
-
-  // ====== QUIZ MODAL ======
-  function openQuiz(qid){
-    openQuizId = qid;
-    const meta = quizzesCache.get(qid);
-    const q = QUESTIONS.find(x => String(x.id) === String(qid));
-
-    clearMsg(els.quizMsg);
-
-    if(!q){
-      setMsg(els.quizMsg, "לא מצאתי חידה עבור id: " + qid, "bad");
-      showModal(els.quizModal);
-      return;
-    }
-
-    els.quizQuestion.textContent = q.q ?? "—";
-
-    const firstAns = Array.isArray(q.a) ? q.a[0] : q.a;
-    const lenHint = (q.len ?? (normAnswer(firstAns).length || "—"));
-    els.quizHint.textContent = "מספר תווים (ללא רווחים/מקפים): " + (lenHint || "—");
-
-    els.quizSolvedCount.textContent = String(meta?.solvedCount ?? 0);
-    els.quizAnswer.value = "";
-    showModal(els.quizModal);
-    setTimeout(()=>els.quizAnswer.focus(),50);
-  }
-
-  async function submitQuiz(){
-    if(!openQuizId || !currentUser) return;
-
-    const qid = openQuizId;
-    const q = QUESTIONS.find(x => String(x.id) === String(qid));
-    if(!q){ setMsg(els.quizMsg, "חידה לא קיימת בקובץ.", "bad"); return; }
-
-    const userAns = normAnswer(els.quizAnswer.value);
-    if(!userAns){ setMsg(els.quizMsg, "כתוב תשובה לפני בדיקה.", "warn"); return; }
-
-    const answers = (Array.isArray(q.a) ? q.a : [q.a]).map(normAnswer);
-    const ok = answers.includes(userAns);
-    if(!ok){ setMsg(els.quizMsg, "לא נכון. נסה שוב.", "bad"); return; }
-
-    const quizRef = doc(db,"games",GAME_ID,"quizzes",qid);
-    const solverRef = doc(db,"games",GAME_ID,"quizzes",qid,"solvers",currentUser);
-    const userRef = doc(db,"games",GAME_ID,"users",currentUser);
-
-    try{
-      await runTransaction(db, async (tx)=>{
-        const solverSnap = await tx.get(solverRef);
-        if(solverSnap.exists()){
-          return; // כבר פתר -> לא נותנים עוד אריח
-        }
-
-        const quizSnap = await tx.get(quizRef);
-        const quiz = quizSnap.data() || {};
-        const colorIndex = Number(quiz.colorIndex ?? 0);
-        const tileColor = PALETTE[colorIndex] || PALETTE[0];
-
-        const uSnap = await tx.get(userRef);
-        const u = uSnap.data() || {};
-        const inv = Array.isArray(u.inventory) ? u.inventory.slice() : [];
-        inv.push(tileColor);
-
-        const solvedCount = Number(quiz.solvedCount || 0);
-
-        tx.set(solverRef, { at: serverTimestamp() });
-        tx.update(quizRef, { solvedCount: solvedCount + 1 });
-        tx.update(userRef, {
-          inventory: inv,
-          solvedQuizzes: arrayUnion(qid),
-          updatedAt: serverTimestamp()
-        });
-      });
-
-      setMsg(els.quizMsg, "נכון! קיבלת אריח למחסן.", "good");
-      setTimeout(()=>{ hideModal(els.quizModal); openQuizId=null; }, 650);
-    }catch(e){
-      setMsg(els.quizMsg, "שגיאה בעדכון. בדוק Firestore Rules.", "bad");
-    }
-  }
-
-  // ====== PLACEMENT RULES ======
-  async function onPlaceTile(x,y){
-    if(!ensureLoggedIn()) return;
-
-    const me = usersCache.get(currentUser);
-    const inv = Array.isArray(me?.inventory) ? me.inventory : [];
-
-    if(selectedInvIndex == null){
-      flashMap("בחר אריח מהמחסן לפני הצבה.", "warn");
-      return;
-    }
-    if(selectedInvIndex < 0 || selectedInvIndex >= inv.length){
-      selectedInvIndex = null;
-      renderInventory();
-      flashMap("בחירת האריח התעדכנה — בחר שוב.", "warn");
-      return;
-    }
-
-    const id = cellId(x,y);
-    if(boardCache.get(id)){
-      flashMap("המשבצת כבר תפוסה.", "warn");
-      return;
-    }
-
-    const cellRef = doc(db,"games",GAME_ID,"board",id);
-    const userRef = doc(db,"games",GAME_ID,"users",currentUser);
-
-    try{
-      await runTransaction(db, async (tx)=>{
-        const cellSnap = await tx.get(cellRef);
-        if(cellSnap.exists()) throw new Error("CELL_TAKEN");
-
-        const neigh = neighbors4(x,y);
-        const neighSnaps = [];
-        for(const [nx,ny] of neigh){
-          neighSnaps.push(await tx.get(doc(db,"games",GAME_ID,"board",cellId(nx,ny))));
-        }
-
-        const anyNeighborOccupied = neighSnaps.some(s=>s.exists());
-        const touchingMy = neighSnaps.some(s=> s.exists() && (s.data()?.owner === currentUser));
-
-        const uSnap = await tx.get(userRef);
-        const u = uSnap.data() || {};
-        const myCount = Number(u.tilesCount || 0);
-
-        const invNow = Array.isArray(u.inventory) ? u.inventory.slice() : [];
-        if(invNow.length === 0) throw new Error("NO_INV");
-        if(selectedInvIndex < 0 || selectedInvIndex >= invNow.length) throw new Error("BAD_INV_INDEX");
-
-        const usedColor = invNow.splice(selectedInvIndex, 1)[0];
-
-        if(myCount === 0){
-          if(anyNeighborOccupied) throw new Error("FIRST_NOT_ISOLATED");
-        } else {
-          if(!touchingMy) throw new Error("NOT_TOUCHING_YOURS");
-        }
-
-        const {r,g,b} = hexToRgb(usedColor);
-        const newCount = myCount + 1;
-        const rSum = Number(u.rSum || 0) + r;
-        const gSum = Number(u.gSum || 0) + g;
-        const bSum = Number(u.bSum || 0) + b;
-
-        tx.set(cellRef, { owner: currentUser, baseColor: usedColor, placedAt: serverTimestamp() });
-        tx.update(userRef, {
-          tilesCount: newCount,
-          rSum, gSum, bSum,
-          inventory: invNow,
-          updatedAt: serverTimestamp()
-        });
-      });
-
-      selectedInvIndex = null;
-      renderInventory();
-    }catch(e){
-      const msg = (e?.message || "");
-      if(msg.includes("CELL_TAKEN")) return flashMap("המשבצת נתפסה רגע לפניך.", "warn");
-      if(msg.includes("NO_INV")) return flashMap("אין לך אריחים במחסן.", "warn");
-      if(msg.includes("BAD_INV_INDEX")) return flashMap("בחירת האריח כבר לא תקפה. בחר מחדש.", "warn");
-      if(msg.includes("FIRST_NOT_ISOLATED")) return flashMap("האריח הראשון חייב להיות מבודד (ללא שכנים).", "bad");
-      if(msg.includes("NOT_TOUCHING_YOURS")) return flashMap("מותר להציב רק צמוד לשטח שלך.", "bad");
-      flashMap("שגיאה בהצבה. בדוק Rules/חיבור.", "bad");
-    }
-  }
-
-  // ====== SCORES ======
-  function openScores(){
-    const entries = [...usersCache.entries()]
-      .map(([name,u])=>{
-        const tiles = Number(u.tilesCount || 0);
-        const pct = (tiles / TOTAL) * 100;
-        return {name, tiles, pct};
-      })
-      .sort((a,b)=> b.tiles - a.tiles);
-
-    if(entries.length===0){
-      els.scoresBody.textContent = "אין עדיין שחקנים.";
-      showModal(els.scoresModal);
-      return;
-    }
-
-    els.scoresBody.innerHTML = entries.map((e,i)=>{
-      const isMe = e.name===currentUser;
-      return `
-        <div style="display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:14px;
-          background:${isMe?"rgba(231,232,233,.14)":"rgba(255,255,255,.04)"}; border:1px solid rgba(255,255,255,.10);">
-          <div style="min-width:0"><b>${i+1}.</b> ${e.name}${isMe?` <span style="color:var(--accent)">• אתה</span>`:""}</div>
-          <div style="text-align:left">
-            <div><b>${e.tiles}</b> אריחים</div>
-            <div style="font-size:12px;color:rgba(255,255,255,.75)"><b>${e.pct.toFixed(1)}%</b> מהשטח</div>
-          </div>
-        </div>`;
-    }).join("<div style='height:8px'></div>");
-
-    showModal(els.scoresModal);
-  }
-
-  function renderScoresIfOpen(){
-    if(els.scoresModal.style.display==="flex") openScores();
-  }
-
-  // ====== SUGGESTIONS ======
-  els.btnSuggest.addEventListener("click", ()=>{
-    if(!ensureLoggedIn()) return;
-    clearMsg(els.suggestMsg);
-    els.suggestQ.value = "";
-    els.suggestA.value = "";
-    els.suggestE.value = "";
-    showModal(els.suggestModal);
-  });
-  els.btnSuggestClose.addEventListener("click", ()=> hideModal(els.suggestModal));
-  els.btnSuggestSubmit.addEventListener("click", async ()=>{
-    if(!ensureLoggedIn()) return;
-
-    const q = els.suggestQ.value.trim();
-    const a = els.suggestA.value.trim();
-    const e = els.suggestE.value.trim();
-
-    if(!q || !a){
-      setMsg(els.suggestMsg, "צריך חידה ופתרון.", "bad");
-      return;
-    }
-
-    try{
-      await addDoc(suggestionsCol, {
-        question: q,
-        answer: a,
-        explanation: e,
-        user: currentUser,
-        createdAt: serverTimestamp()
-      });
-      setMsg(els.suggestMsg, "נשלח! תודה 🙌", "good");
-    }catch(err){
-      setMsg(els.suggestMsg, "שגיאה בשליחה. בדוק Rules.", "bad");
-    }
-  });
-
-  // ====== LISTENERS ======
-  function startListeners(){
-    onSnapshot(usersCol, (qs)=>{
-      usersCache.clear();
-      qs.forEach(d=> usersCache.set(d.id, d.data()));
-      updateHud();
-      renderInventory();
-      renderBoard();
-      renderCards();
-      renderScoresIfOpen();
-    });
-
-    onSnapshot(quizzesCol, (qs)=>{
-      quizzesCache.clear();
-      qs.forEach(d=> quizzesCache.set(d.id, d.data()));
-      renderCards();
-    });
-
-    onSnapshot(boardCol, (qs)=>{
-      boardCache.clear();
-      qs.forEach(d=> boardCache.set(d.id, d.data()));
-      renderBoard();
-    });
-  }
-
-  // ====== UI WIRING ======
-  els.tabTiles.addEventListener("click", ()=> setWorld("tiles"));
-  els.tabMap.addEventListener("click", ()=> { if(ensureLoggedIn()) setWorld("map"); });
-
-  els.btnBackTiles.addEventListener("click", ()=> setWorld("tiles"));
-
   els.btnFit.addEventListener("click", ()=>{
     zoom = 1;
     applyBoardScale();
   });
   els.btnZoomIn.addEventListener("click", ()=>{
-    zoom = Math.min(3.0, zoom + 0.2);
+    zoom = Math.min(3, zoom + 0.2);
     applyBoardScale();
   });
   els.btnZoomOut.addEventListener("click", ()=>{
-    zoom = Math.max(1.0, zoom - 0.2);
+    zoom = Math.max(1, zoom - 0.2);
     applyBoardScale();
   });
 
-  els.btnScores.addEventListener("click", ()=>{ if(!ensureLoggedIn()) return; openScores(); });
-  els.btnScoresClose.addEventListener("click", ()=> hideModal(els.scoresModal));
-
-  els.btnLogin.addEventListener("click", async ()=>{
-    clearMsg(els.loginMsg);
-    try{
-      const res = await tryLogin(els.loginName.value);
-      if(!res.ok) return setMsg(els.loginMsg, res.msg, "bad");
-      updateHud();
-    }catch(e){
-      setMsg(els.loginMsg, "שגיאה. בדוק Firebase config / Rules.", "bad");
-    }
-  });
-  els.loginName.addEventListener("keydown", (e)=>{ if(e.key==="Enter") els.btnLogin.click(); });
-
-  els.btnQuizSubmit.addEventListener("click", submitQuiz);
-  els.btnQuizClose.addEventListener("click", ()=>{ hideModal(els.quizModal); openQuizId=null; });
-  els.quizAnswer.addEventListener("keydown",(e)=>{ if(e.key==="Enter") submitQuiz(); });
-
-  els.btnLogout.addEventListener("click", ()=>{
-    if(!confirm("לצאת מהמשתמש הנוכחי?")) return;
-    currentUser="";
-    localStorage.removeItem(SESSION_KEY);
-    updateHud();
-    showModal(els.loginModal);
-  });
-
-  for(const m of [els.quizModal, els.scoresModal, els.loginModal, els.suggestModal]){
-    m.addEventListener("click",(e)=>{ if(e.target===m) hideModal(m); });
-  }
+  window.addEventListener("resize", applyBoardScale);
 
   // ====== BOOT ======
-  (async function boot(){
-    setWorld("tiles");
-    await loadQuestions();
-    await ensureGameSeeded();
-    startListeners();
-
-    if(!currentUser) showModal(els.loginModal);
-    updateHud();
-    applyBoardScale();
-  })();
+  buildTiles();
+  buildBoard();
+  setWorld("map");      // תתחיל במפה כדי לבדוק מיקום
+  applyBoardScale();
 </script>
+
 </body>
 </html>
