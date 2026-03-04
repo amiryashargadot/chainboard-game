@@ -435,7 +435,7 @@
 </div>
 
 <footer>
-  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">תוכן עניינים | להכניס עניין לתוכן</a>
+  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">להכניס עניין לתוכן</a>
 </footer>
 
 <!-- מודאל כניסה -->
@@ -1151,34 +1151,28 @@
 
   // ====== LISTENERS ======
   function startListeners(){
-  onSnapshot(usersCol, (qs)=>{
-    usersCache.clear();
-    qs.forEach(d=> usersCache.set(d.id, d.data()));
-    updateHud();
-    renderInventory();
-    renderBoard();
-    renderCards();
-    renderScoresIfOpen();
-  }, (err)=>{
-    console.error("usersCol snapshot error:", err);
-  });
+    onSnapshot(usersCol, (qs)=>{
+      usersCache.clear();
+      qs.forEach(d=> usersCache.set(d.id, d.data()));
+      updateHud();
+      renderInventory();
+      renderBoard();
+      renderCards();
+      renderScoresIfOpen();
+    });
 
-  onSnapshot(quizzesCol, (qs)=>{
-    quizzesCache.clear();
-    qs.forEach(d=> quizzesCache.set(d.id, d.data()));
-    renderCards();
-  }, (err)=>{
-    console.error("quizzesCol snapshot error:", err);
-  });
+    onSnapshot(quizzesCol, (qs)=>{
+      quizzesCache.clear();
+      qs.forEach(d=> quizzesCache.set(d.id, d.data()));
+      renderCards();
+    });
 
-  onSnapshot(boardCol, (qs)=>{
-    boardCache.clear();
-    qs.forEach(d=> boardCache.set(d.id, d.data()));
-    renderBoard();
-  }, (err)=>{
-    console.error("boardCol snapshot error:", err);
-  });
-}
+    onSnapshot(boardCol, (qs)=>{
+      boardCache.clear();
+      qs.forEach(d=> boardCache.set(d.id, d.data()));
+      renderBoard();
+    });
+  }
 
   // ====== UI WIRING ======
   els.tabTiles.addEventListener("click", ()=> setWorld("tiles"));
@@ -1231,29 +1225,16 @@
   }
 
   // ====== BOOT ======
-(async function boot(){
-  try{
+  (async function boot(){
     setWorld("tiles");
-
     await loadQuestions();
-    console.log("QUESTIONS loaded:", QUESTIONS.length);
-    renderCards(); // ✅ חשוב: רנדר מיידי
-
     await ensureGameSeeded();
-    console.log("ensureGameSeeded done");
-
     startListeners();
 
     if(!currentUser) showModal(els.loginModal);
     updateHud();
-    renderInventory(); // גם זה
     applyBoardScale();
-
-  }catch(err){
-    console.error("BOOT ERROR:", err);
-    alert("BOOT ERROR: " + (err?.message || err));
-  }
-})();
+  })();
 </script>
 </body>
 </html>
