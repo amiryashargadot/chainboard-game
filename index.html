@@ -435,7 +435,7 @@
 </div>
 
 <footer>
-  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">להכניס עניין לתוכן</a>
+  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">תוכן עניינים | להכניס עניין לתוכן</a>
 </footer>
 
 <!-- מודאל כניסה -->
@@ -1232,19 +1232,27 @@
 
   // ====== BOOT ======
 (async function boot(){
-  setWorld("tiles");
+  try{
+    setWorld("tiles");
 
-  await loadQuestions();
+    await loadQuestions();
+    console.log("QUESTIONS loaded:", QUESTIONS.length);
+    renderCards(); // ✅ חשוב: רנדר מיידי
 
-  // ✅ חדש: מצייר את האריחים גם אם Firestore לא עובד כרגע
-  renderCards();
+    await ensureGameSeeded();
+    console.log("ensureGameSeeded done");
 
-  await ensureGameSeeded();
-  startListeners();
+    startListeners();
 
-  if(!currentUser) showModal(els.loginModal);
-  updateHud();
-  applyBoardScale();
+    if(!currentUser) showModal(els.loginModal);
+    updateHud();
+    renderInventory(); // גם זה
+    applyBoardScale();
+
+  }catch(err){
+    console.error("BOOT ERROR:", err);
+    alert("BOOT ERROR: " + (err?.message || err));
+  }
 })();
 </script>
 </body>
