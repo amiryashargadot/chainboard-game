@@ -107,13 +107,13 @@
       border-bottom:1px solid rgba(255,255,255,.10);box-shadow:inset 0 2px 0 rgba(255,255,255,.08);
     }
 
-    /* ✅ אריחים: ריבועים, 4 בשורה (גם מובייל וגם דסק) */
+    /* ✅ אריחים: ברירת מחדל דסקטופ — 10 בשורה */
     .cards-grid{
       display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(10, minmax(0, 1fr));
       gap: 10px;
       padding: 12px;
-      max-height: 420px;
+      max-height: 520px;
       overflow:auto;
     }
 
@@ -143,7 +143,7 @@
     .qc-big{
       height:100%;
       display:flex;align-items:center;justify-content:center;
-      font-size:40px;font-weight:1000;color:rgba(0,0,0,.78);
+      font-size:30px;font-weight:1000;color:rgba(0,0,0,.78);
       text-shadow:0 2px 0 rgba(255,255,255,.25);
       transform: translateY(6px);    /* ✅ הספרה קצת למטה */
     }
@@ -195,6 +195,9 @@
 
       /* ✅ שלא יברח למטה בדסקטופ */
       max-height: calc(100svh - var(--headerH) - var(--tabsH) - var(--footerH) - 64px);
+
+      /* ✅ כדי שגלילה אופקית תעבוד נכון גם ב-RTL */
+      direction:ltr;
     }
     .grid-frame.zoomed{
       overflow:auto;
@@ -210,6 +213,9 @@
       grid-template-rows:repeat(var(--H), var(--cell));
       gap:var(--gap);
       transform-origin: 0 0;
+
+      /* ✅ מפחית "היעלמויות" בזמן transform/zoom */
+      will-change: transform;
     }
 
     .dcell{
@@ -220,11 +226,17 @@
       cursor:pointer;
       position:relative;
       overflow:hidden;
+
+      /* ✅ GPU layer */
+      transform: translateZ(0);
     }
     .dcell:hover{background:rgba(255,255,255,.07);}
 
     .dcell .fill{
       position:absolute;inset:0;border-radius:12px;
+
+      /* ✅ GPU layer */
+      transform: translateZ(0);
     }
     .dcell .name{
       position:absolute;inset:0;
@@ -325,15 +337,22 @@
       .hud{justify-content:center}
       .map-layout{grid-template-columns: 1fr;}
 
+      /* ✅ מובייל: 4 בשורה */
+      .cards-grid{
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        max-height: 360px;
+      }
+
       .qc-big{font-size:30px;}
       .quiz-card{border-radius:14px;padding:8px;}
       .qc-small{font-size:10px;top:6px;right:6px;padding:2px 6px;}
       .diamond{width:38px;height:38px;}
 
-    .grid-frame{
-  aspect-ratio: auto;
-  height: min(62svh, 520px);
-}
+      /* ✅ במובייל לא ריבוע: שייכנס למסך (רואים את כל הלוח) */
+      .grid-frame{
+        aspect-ratio: auto;
+        height: min(58svh, 520px);
+      }
     }
   </style>
 </head>
@@ -436,7 +455,7 @@
 </div>
 
 <footer>
-  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">להכניס עניין לתוכן</a>
+  <a href="https://www.inyanim.studio/" target="_blank" rel="noopener">תוכן עניינים | להכניס עניין לתוכן</a>
 </footer>
 
 <!-- מודאל כניסה -->
@@ -901,14 +920,14 @@
       wrap.style.width  = (naturalW * s) + "px";
       wrap.style.height = (naturalH * s) + "px";
 
-      els.diamondGrid.style.transform = `scale(${s})`;
+      els.diamondGrid.style.transform = `translateZ(0) scale(${s})`;
     } else {
       frame.classList.add("zoomed");
 
       wrap.style.width  = (naturalW * zoom) + "px";
       wrap.style.height = (naturalH * zoom) + "px";
 
-      els.diamondGrid.style.transform = `scale(${zoom})`;
+      els.diamondGrid.style.transform = `translateZ(0) scale(${zoom})`;
     }
   }
 
